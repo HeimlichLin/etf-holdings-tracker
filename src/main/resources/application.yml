@@ -1,0 +1,65 @@
+# ETF Holdings Tracker 應用程式配置
+
+# Server 配置
+server:
+  port: 8080
+
+# Spring 配置
+spring:
+  application:
+    name: etf-holdings-tracker
+
+  # H2 資料庫配置
+  datasource:
+    url: jdbc:h2:file:./data/etf-tracker;MODE=MySQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # JPA 配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # H2 Console (開發用)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# ETF 追蹤配置
+etf:
+  # 追蹤的 ETF 代碼 (逗號分隔)
+  tracked-symbols: ARKK,ARKW,ARKQ,ARKG,ARKF
+
+  # 資料保留天數 (預設一季 = 90天)
+  data:
+    retention-days: 90
+
+  # ARK 資料來源配置
+  ark:
+    base-url: https://ark-funds.com/wp-content/uploads/funds-etf-csv
+
+  # 爬蟲配置
+  crawler:
+    timeout: 30000
+
+  # 排程配置 (cron 格式)
+  scheduler:
+    # 每日追蹤 - 週一到週五 22:00 UTC (美東時間 18:00)
+    cron: "0 0 22 * * MON-FRI"
+    # 每週清理 - 週日 00:00
+    cleanup-cron: "0 0 0 * * SUN"
+
+# 日誌配置
+logging:
+  level:
+    root: INFO
+    com.etf.tracker: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
