@@ -102,7 +102,7 @@ public class ArkEtfCrawlerService implements EtfDataCrawlerService {
             }
 
             String[] fields = line.split(",");
-            if (fields.length >= 7) {
+            if (fields.length >= 8) {
                 try {
                     HoldingDto holding = HoldingDto.builder()
                         .stockSymbol(cleanField(fields[3]))  // ticker

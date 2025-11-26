@@ -71,9 +71,6 @@ public class EtfHoldingsTrackingService {
             log.info("{} 在 {} 共有 {} 項變動", etfSymbol, today, changes.size());
         }
 
-        // 清理過期資料
-        cleanupOldData();
-
         return buildSummary(etfSymbol, today, changes);
     }
 
