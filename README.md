@@ -43,12 +43,28 @@
 git clone https://github.com/HeimlichLin/etf-holdings-tracker.git
 cd etf-holdings-tracker
 
-# 建置專案
-mvn clean package -DskipTests
+# 編譯專案（開發時使用）
+mvn clean compile -q
 
-# 執行應用程式
+# 建置完整套件
+mvn clean package -DskipTests
+```
+
+### 開發環境啟動應用程式
+
+#### 啟動桌面版（JavaFX GUI）
+
+```bash
 mvn javafx:run
 ```
+
+#### 啟動網頁版（REST API）
+
+```bash
+mvn spring-boot:run
+```
+
+然後在瀏覽器打開：http://localhost:8080
 
 ### 建置發行套件
 

@@ -46,7 +46,10 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 /**
  * 主視圖控制器
@@ -76,6 +79,10 @@ public class MainViewController implements Initializable {
     private Button navHomeButton;
     @FXML
     private Button navCompareButton;
+
+    // 工具列
+    @FXML
+    private ToolBar toolBar;
 
     // 工具列元件
     @FXML
@@ -122,6 +129,12 @@ public class MainViewController implements Initializable {
     private Label progressLabel;
     @FXML
     private Label versionLabel;
+    @FXML
+    private VBox loadingOverlay;
+    @FXML
+    private StackPane resultContainer;
+    @FXML
+    private Label statusMessage;
 
     // 服務
     private final DataFetchService dataFetchService;
@@ -446,9 +459,9 @@ public class MainViewController implements Initializable {
             fetchButton.setDisable(loading);
             viewButton.setDisable(loading);
             refreshButton.setDisable(loading);
-            progressIndicator.setVisible(loading);
+            loadingOverlay.setVisible(loading);
             progressLabel.setText(message);
-            statusLabel.setText(loading ? "處理中..." : "就緒");
+            statusMessage.setText(loading ? "處理中..." : "就緒");
         });
     }
 
@@ -500,6 +513,13 @@ public class MainViewController implements Initializable {
     public void handleNavHome() {
         logger.info("導航到主畫面");
         updateNavigationState("home");
+        
+        // 恢復工具列
+        if (toolBar != null) {
+            toolBar.setVisible(true);
+            toolBar.setManaged(true);
+        }
+        
         if (homeView != null) {
             rootPane.setCenter(homeView);
         }
@@ -512,6 +532,12 @@ public class MainViewController implements Initializable {
     public void handleNavCompare() {
         logger.info("導航到區間比較");
         updateNavigationState("compare");
+        
+        // 隱藏工具列
+        if (toolBar != null) {
+            toolBar.setVisible(false);
+            toolBar.setManaged(false);
+        }
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/range-compare.fxml"));

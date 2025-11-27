@@ -784,3 +784,29 @@
     -fx-text-fill: -fx-text-secondary;
     -fx-text-alignment: center;
 }
+
+/* ========== 結果容器和加載覆蓋層 ========== */
+.result-container {
+    -fx-background-color: transparent;
+}
+
+.loading-overlay {
+    -fx-background-color: rgba(255, 255, 255, 0.95);
+    -fx-padding: 32;
+    -fx-spacing: 16;
+}
+
+.result-progress {
+    -fx-min-width: 60px;
+    -fx-min-height: 60px;
+    -fx-max-width: 60px;
+    -fx-max-height: 60px;
+}
+
+.loading-message {
+    -fx-font-size: 16px;
+    -fx-text-fill: -fx-primary;
+    -fx-font-weight: 500;
+    -fx-text-alignment: center;
+}
+

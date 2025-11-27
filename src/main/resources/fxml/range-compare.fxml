@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.etf.tracker.gui.view.RangeCompareViewController"
@@ -12,8 +13,8 @@
     <!-- 頂部：標題與日期選擇 -->
     <top>
         <VBox fx:id="headerContainer">
-            <!-- 標題列 -->
-            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="header-bar" fx:id="headerBar">
+            <!-- 標題列 (隱藏) -->
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="header-bar" fx:id="headerBar" managed="false" visible="false">
                 <padding>
                     <Insets top="12" bottom="12" left="20" right="20"/>
                 </padding>
@@ -85,7 +86,8 @@
             </HBox>
 
             <!-- 分類標籤頁 -->
-            <TabPane fx:id="categoryTabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+            <StackPane fx:id="resultContainer" VBox.vgrow="ALWAYS" styleClass="result-container">
+                <TabPane fx:id="categoryTabPane" tabClosingPolicy="UNAVAILABLE">
                 <!-- 新進增持 -->
                 <Tab text="🆕 新進增持">
                     <VBox spacing="8">
@@ -220,12 +222,14 @@
                 </Tab>
             </TabPane>
 
-            <!-- 底部資訊列 -->
-            <HBox spacing="12" alignment="CENTER_LEFT" fx:id="footerBar">
-                <Label fx:id="recordCountLabel" text="共 0 筆變化"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label text="🔴 紅色表示增持/新進，🟢 綠色表示減持/剔除" styleClass="hint-label"/>
-            </HBox>
+                <!-- 加載指示器（疊在表格上方） -->
+                <VBox alignment="CENTER" spacing="16" styleClass="loading-overlay" fx:id="loadingOverlay"
+                       visible="false">
+                    <ProgressIndicator fx:id="progressIndicator" prefWidth="60" prefHeight="60" 
+                                     styleClass="result-progress"/>
+                    <Label fx:id="progressLabel" text="正在加載..." styleClass="loading-message"/>
+                </VBox>
+            </StackPane>
         </VBox>
     </center>
 
@@ -235,12 +239,9 @@
             <padding>
                 <Insets top="6" bottom="6" left="20" right="20"/>
             </padding>
-            <ProgressIndicator fx:id="progressIndicator" visible="false" prefWidth="18" prefHeight="18"/>
-            <Label fx:id="progressLabel" text=""/>
+            <Label fx:id="recordCountLabel" text="共 0 筆變化"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label text="ESC 返回" styleClass="shortcut-hint"/>
-            <Label text="|" styleClass="nav-separator"/>
-            <Label text="ETF 00981A 區間持倉比較"/>
+            <Label text="ESC 返回  |  ETF 00981A 區間持倉比較" styleClass="shortcut-hint"/>
         </HBox>
     </bottom>
 </BorderPane>

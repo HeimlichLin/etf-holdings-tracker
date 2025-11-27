@@ -80,25 +80,36 @@
                 </VBox>
             </HBox>
 
-            <!-- 資料表格 -->
-            <TableView fx:id="holdingsTable" VBox.vgrow="ALWAYS" styleClass="holdings-table">
-                <columns>
-                    <TableColumn fx:id="stockCodeColumn" text="股票代號" prefWidth="100" minWidth="80"/>
-                    <TableColumn fx:id="stockNameColumn" text="股票名稱" prefWidth="200" minWidth="120"/>
-                    <TableColumn fx:id="sharesColumn" text="股數" prefWidth="150" minWidth="100"/>
-                    <TableColumn fx:id="weightColumn" text="權重(%)" prefWidth="100" minWidth="80"/>
-                </columns>
-                <placeholder>
-                    <VBox alignment="CENTER" spacing="12" styleClass="empty-state">
-                        <Label text="📊" styleClass="empty-state-icon"/>
-                        <Label text="尚無資料" styleClass="empty-state-title"/>
-                        <Label text="請點擊「抓取最新資料」取得持倉資料" styleClass="empty-state-message"/>
-                    </VBox>
-                </placeholder>
-                <columnResizePolicy>
-                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                </columnResizePolicy>
-            </TableView>
+            <!-- 結果區塊容器（包含表格和加載指示器） -->
+            <StackPane fx:id="resultContainer" VBox.vgrow="ALWAYS" styleClass="result-container">
+                <!-- 資料表格 -->
+                <TableView fx:id="holdingsTable" styleClass="holdings-table">
+                    <columns>
+                        <TableColumn fx:id="stockCodeColumn" text="股票代號" prefWidth="100" minWidth="80"/>
+                        <TableColumn fx:id="stockNameColumn" text="股票名稱" prefWidth="200" minWidth="120"/>
+                        <TableColumn fx:id="sharesColumn" text="股數" prefWidth="150" minWidth="100"/>
+                        <TableColumn fx:id="weightColumn" text="權重(%)" prefWidth="100" minWidth="80"/>
+                    </columns>
+                    <placeholder>
+                        <VBox alignment="CENTER" spacing="12" styleClass="empty-state">
+                            <Label text="📊" styleClass="empty-state-icon"/>
+                            <Label text="尚無資料" styleClass="empty-state-title"/>
+                            <Label text="請點擊「抓取最新資料」取得持倉資料" styleClass="empty-state-message"/>
+                        </VBox>
+                    </placeholder>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                </TableView>
+
+                <!-- 加載指示器（疊在表格上方） -->
+                <VBox alignment="CENTER" spacing="16" styleClass="loading-overlay" fx:id="loadingOverlay"
+                       visible="false">
+                    <ProgressIndicator fx:id="progressIndicator" prefWidth="60" prefHeight="60" 
+                                     styleClass="result-progress"/>
+                    <Label fx:id="progressLabel" text="正在加載..." styleClass="loading-message"/>
+                </VBox>
+            </StackPane>
 
             <!-- 搜尋列 -->
             <HBox spacing="12" alignment="CENTER_LEFT" fx:id="searchBar">
@@ -118,8 +129,7 @@
             <padding>
                 <Insets top="6" bottom="6" left="20" right="20"/>
             </padding>
-            <ProgressIndicator fx:id="progressIndicator" visible="false" prefWidth="18" prefHeight="18"/>
-            <Label fx:id="progressLabel" text=""/>
+            <Label fx:id="statusMessage" text="就緒"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label text="F5 重新整理" styleClass="shortcut-hint"/>
             <Label text="|" styleClass="nav-separator"/>

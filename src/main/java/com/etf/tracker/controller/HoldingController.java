@@ -261,7 +261,7 @@ public class HoldingController {
     @GetMapping("/page")
     public ResponseEntity<ApiResponse<List<HoldingDto>>> getHoldingsPage(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int pageSize) {
+            @RequestParam(defaultValue = "50") int pageSize) {
         logger.info("取得分頁持倉: page={}, pageSize={}", page, pageSize);
 
         List<Holding> holdings = holdingQueryService.getHoldingsPage(page, pageSize);

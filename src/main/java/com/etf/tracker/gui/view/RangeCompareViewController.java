@@ -32,9 +32,14 @@ import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
 /**
@@ -59,6 +64,10 @@ public class RangeCompareViewController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(RangeCompareViewController.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final NumberFormat NUMBER_FORMAT = NumberFormat.getNumberInstance(Locale.TAIWAN);
+
+    // 根容器
+    @FXML
+    private BorderPane rootPane;
 
     // 日期選擇
     @FXML
@@ -169,6 +178,14 @@ public class RangeCompareViewController implements Initializable {
     // 底部
     @FXML
     private Label recordCountLabel;
+    @FXML
+    private VBox loadingOverlay;
+    @FXML
+    private ProgressIndicator progressIndicator;
+    @FXML
+    private Label progressLabel;
+    @FXML
+    private StackPane resultContainer;
 
     // 服務
     private final HoldingCompareService holdingCompareService;
@@ -184,6 +201,13 @@ public class RangeCompareViewController implements Initializable {
     private Runnable backHandler;
     private List<LocalDate> availableDates;
 
+    // 各類別的計數
+    private int newAdditionsCount = 0;
+    private int removalsCount = 0;
+    private int increasedCount = 0;
+    private int decreasedCount = 0;
+    private int unchangedCount = 0;
+
     public RangeCompareViewController(HoldingCompareService holdingCompareService,
             ExcelStorageService excelStorageService) {
         this.holdingCompareService = holdingCompareService;
@@ -197,8 +221,62 @@ public class RangeCompareViewController implements Initializable {
         setupDatePickers();
         setupTableColumns();
         loadAvailableDates();
+        setupKeyboardShortcuts();
+        setupTabPaneListener();
 
         logger.info("區間比較視圖初始化完成");
+    }
+
+    /**
+     * 設定標籤頁選擇監聽
+     */
+    private void setupTabPaneListener() {
+        categoryTabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> {
+            updateRecordCount(newVal.intValue());
+        });
+    }
+
+    /**
+     * 更新記錄計數
+     */
+    private void updateRecordCount(int tabIndex) {
+        String displayText;
+        switch (tabIndex) {
+            case 0: // 新進增持
+                displayText = String.format("共 %d 筆變化", newAdditionsCount);
+                break;
+            case 1: // 剔除減持
+                displayText = String.format("共 %d 筆變化", removalsCount);
+                break;
+            case 2: // 增持
+                displayText = String.format("共 %d 筆變化", increasedCount);
+                break;
+            case 3: // 減持
+                displayText = String.format("共 %d 筆變化", decreasedCount);
+                break;
+            case 4: // 不變
+                displayText = "沒有變化";
+                break;
+            default:
+                displayText = "共 0 筆變化";
+                break;
+        }
+        recordCountLabel.setText(displayText);
+    }
+
+    /**
+     * 設定鍵盤快捷鍵
+     */
+    private void setupKeyboardShortcuts() {
+        rootPane.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                handleBack();
+                event.consume();
+            } else if (event.getCode() == KeyCode.F5) {
+                handleCompare();
+                event.consume();
+            }
+        });
     }
 
     /**
@@ -411,7 +489,7 @@ public class RangeCompareViewController implements Initializable {
         }
 
         compareButton.setDisable(true);
-        statusLabel.setText("比較中...");
+        setLoading(true, "正在比較...");
 
         Task<RangeCompareResultDto> task = new Task<>() {
             @Override
@@ -424,14 +502,14 @@ public class RangeCompareViewController implements Initializable {
             RangeCompareResultDto result = task.getValue();
             displayCompareResult(result);
             compareButton.setDisable(false);
-            statusLabel.setText("比較完成");
+            setLoading(false, "比較完成");
         });
 
         task.setOnFailed(event -> {
             logger.error("比較失敗", task.getException());
             showAlert("比較失敗: " + task.getException().getMessage());
             compareButton.setDisable(false);
-            statusLabel.setText("比較失敗");
+            setLoading(false, "比較失敗");
         });
 
         new Thread(task).start();
@@ -490,17 +568,19 @@ public class RangeCompareViewController implements Initializable {
             decreasedLabel.setText(String.valueOf(result.decreasedCount()));
             unchangedLabel.setText(String.valueOf(result.unchangedCount()));
 
+            // 保存計數
+            newAdditionsCount = result.newAdditionsCount();
+            removalsCount = result.removalsCount();
+            increasedCount = result.increasedCount();
+            decreasedCount = result.decreasedCount();
+            unchangedCount = result.unchangedCount();
+
             // 更新表格資料
             newAdditionsData.setAll(result.newAdditions());
             removalsData.setAll(result.removals());
             increasedData.setAll(result.increased());
             decreasedData.setAll(result.decreased());
             unchangedData.setAll(result.unchanged());
-
-            // 更新總數
-            int totalChanges = result.newAdditionsCount() + result.removalsCount() +
-                    result.increasedCount() + result.decreasedCount() + result.unchangedCount();
-            recordCountLabel.setText(String.format("共 %d 筆變化", totalChanges));
 
             // 自動切換到有資料的標籤頁
             selectFirstNonEmptyTab(result);
@@ -510,14 +590,19 @@ public class RangeCompareViewController implements Initializable {
     private void selectFirstNonEmptyTab(RangeCompareResultDto result) {
         if (result.newAdditionsCount() > 0) {
             categoryTabPane.getSelectionModel().select(0);
+            updateRecordCount(0);
         } else if (result.removalsCount() > 0) {
             categoryTabPane.getSelectionModel().select(1);
+            updateRecordCount(1);
         } else if (result.increasedCount() > 0) {
             categoryTabPane.getSelectionModel().select(2);
+            updateRecordCount(2);
         } else if (result.decreasedCount() > 0) {
             categoryTabPane.getSelectionModel().select(3);
+            updateRecordCount(3);
         } else {
             categoryTabPane.getSelectionModel().select(4);
+            updateRecordCount(4);
         }
     }
 
@@ -568,6 +653,17 @@ public class RangeCompareViewController implements Initializable {
             alert.setHeaderText(null);
             alert.setContentText(message);
             alert.showAndWait();
+        });
+    }
+
+    /**
+     * 設定加載狀態
+     */
+    private void setLoading(boolean loading, String message) {
+        Platform.runLater(() -> {
+            compareButton.setDisable(loading);
+            loadingOverlay.setVisible(loading);
+            progressLabel.setText(message);
         });
     }
 }

@@ -4,6 +4,17 @@
 spring:
   application:
     name: etf-holdings-tracker
+  # DevTools 熱部署配置
+  devtools:
+    restart:
+      enabled: true
+      # 監視的路徑 (預設監視 classpath 中的變更)
+      # 可以排除某些目錄的監視來提高效能
+      poll-interval: 1000
+      quiet-period: 400
+    livereload:
+      enabled: true
+      port: 35729
 
 # 伺服器配置 (內部 REST API)
 server:
