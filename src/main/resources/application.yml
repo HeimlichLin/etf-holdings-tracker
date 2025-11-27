@@ -1,0 +1,73 @@
+# ETF Holdings Tracker 應用程式配置
+# 用於追蹤 ETF 00981A 的每日持倉變化
+
+spring:
+  application:
+    name: etf-holdings-tracker
+
+# 伺服器配置 (內部 REST API)
+server:
+  port: 8080
+
+# 應用程式自訂配置
+app:
+  # 資料儲存配置
+  data:
+    # 資料儲存路徑 (相對於執行檔目錄)
+    storage-path: ./data
+    # Excel 檔案名稱
+    file-name: holdings.xlsx
+    # 資料保留天數 (統計查詢範圍)
+    retention-days: 90
+
+  # 網頁擷取配置
+  scraper:
+    # 目標網站 URL
+    target-url: https://www.ezmoney.com.tw/ETF/Fund/Info?FundCode=49YTW
+    # 請求逾時時間 (秒)
+    timeout-seconds: 10
+    # 最大重試次數
+    max-retries: 3
+    # 重試間隔時間 (秒) - 指數退避
+    retry-delays:
+      - 2
+      - 4
+      - 8
+    # HTTP 請求 User-Agent
+    user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+  # HTTP 客戶端配置
+  http-client:
+    # 連線池最大閒置連線數
+    max-idle-connections: 5
+    # 連線存活時間 (秒)
+    keep-alive-duration-seconds: 300
+    # 連線逾時時間 (秒)
+    connect-timeout-seconds: 10
+    # 讀取逾時時間 (秒)
+    read-timeout-seconds: 30
+    # 寫入逾時時間 (秒)
+    write-timeout-seconds: 30
+
+# 日誌配置
+logging:
+  level:
+    root: INFO
+    com.etf.tracker: DEBUG
+    org.springframework.web: INFO
+    org.apache.poi: WARN
+  file:
+    path: ./logs
+    name: ${logging.file.path}/app.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Spring Boot Actuator (可選，用於健康檢查)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized

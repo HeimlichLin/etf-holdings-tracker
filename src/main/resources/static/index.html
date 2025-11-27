@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETF 00981A 持倉追蹤系統</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { 
+            color: white; 
+            text-align: center; 
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .card { 
+            background: white; 
+            border-radius: 12px; 
+            padding: 24px; 
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .card h2 { 
+            color: #333; 
+            margin-bottom: 16px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a6fd6; transform: translateY(-2px); }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        #result {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .status { padding: 8px 16px; border-radius: 20px; display: inline-block; margin: 8px 0; }
+        .status-up { background: #d4edda; color: #155724; }
+        .status-degraded { background: #fff3cd; color: #856404; }
+        .status-down { background: #f8d7da; color: #721c24; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: 600; }
+        tr:hover { background: #f5f5f5; }
+        
+        .loading { display: none; text-align: center; padding: 20px; }
+        .loading.active { display: block; }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .increase { color: #dc3545; font-weight: bold; }
+        .decrease { color: #28a745; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📈 ETF 00981A 持倉追蹤系統</h1>
+        
+        <div class="card">
+            <h2>🔄 系統狀態</h2>
+            <div id="healthStatus">載入中...</div>
+        </div>
+        
+        <div class="card">
+            <h2>📊 操作面板</h2>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="fetchData()">🔄 抓取最新資料</button>
+                <button class="btn btn-success" onclick="getLatest()">📋 查看最新持倉</button>
+                <select id="dateSelect" class="btn" style="background: white; border: 1px solid #ddd; color: #333; min-width: 150px;">
+                    <option value="">載入日期中...</option>
+                </select>
+                <button class="btn btn-primary" onclick="getByDate()">📅 查詢指定日期</button>
+                <button class="btn btn-warning" onclick="previewCleanup()">🗑️ 預覽清理</button>
+                <button class="btn btn-danger" onclick="confirmCleanup()" style="display:none;" id="confirmCleanupBtn">❌ 確認清理</button>
+            </div>
+            
+            <div class="compare-section" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
+                <h3>📉 區間比較</h3>
+                <div class="btn-group" style="margin-top: 12px; align-items: center;">
+                    <label>起始：<select id="startDateSelect" class="btn" style="background: white; border: 1px solid #ddd; padding: 8px;"></select></label>
+                    <label>結束：<select id="endDateSelect" class="btn" style="background: white; border: 1px solid #ddd; padding: 8px;"></select></label>
+                    <button id="compareBtn" class="btn btn-primary" onclick="compareRange()">📊 開始比較</button>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 12px; color: #666;">處理中，請稍候...</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📝 執行結果</h2>
+            <div id="result">點擊上方按鈕開始操作</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        
+        async function api(endpoint, method = 'GET') {
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, { method });
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                return { success: false, message: error.message };
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+        
+        function formatJson(obj) {
+            return JSON.stringify(obj, null, 2);
+        }
+        
+        function renderResult(data) {
+            document.getElementById('result').textContent = formatJson(data);
+        }
+        
+        async function checkHealth() {
+            const data = await api('/system/health');
+            const container = document.getElementById('healthStatus');
+            
+            if (data.success && data.data) {
+                const health = data.data;
+                const statusClass = health.status === 'UP' ? 'status-up' : 
+                                   health.status === 'DEGRADED' ? 'status-degraded' : 'status-down';
+                container.innerHTML = `
+                    <span class="status ${statusClass}">${health.status}</span>
+                    <table>
+                        <tr><th>元件</th><th>狀態</th><th>訊息</th></tr>
+                        ${Object.entries(health.components || {}).map(([key, comp]) => `
+                            <tr>
+                                <td>${comp.name || key}</td>
+                                <td>${comp.status}</td>
+                                <td>${comp.message || '-'}</td>
+                            </tr>
+                        `).join('')}
+                        <tr><td>總記錄數</td><td colspan="2">${health.totalRecords}</td></tr>
+                        <tr><td>檢查時間</td><td colspan="2">${new Date(health.checkedAt).toLocaleString('zh-TW')}</td></tr>
+                    </table>
+                `;
+            } else {
+                container.innerHTML = '<span class="status status-down">無法連線</span>';
+            }
+        }
+        
+        async function fetchData() {
+            const data = await api('/holdings/fetch', 'POST');
+            if (data.success && data.data) {
+                const snapshot = data.data;
+                let html = `
+                    <div style="background: #d4edda; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="color: #155724; margin: 0 0 8px 0;">✅ 資料抓取成功！</h3>
+                        <div style="color: #155724; font-size: 14px;">
+                            <p><strong>日期：</strong> ${snapshot.date}</p>
+                            <p><strong>成分股數量：</strong> ${snapshot.totalCount}</p>
+                            <p><strong>總權重：</strong> ${snapshot.totalWeight?.toFixed(2) || '0'}%</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="margin-top: 0;">前 10 筆成分股資料</h4>
+                        <table>
+                            <tr><th>代碼</th><th>名稱</th><th>股數</th><th>權重</th></tr>
+                            ${(snapshot.holdings || []).slice(0, 10).map(h => `
+                                <tr>
+                                    <td>${h.stockCode}</td>
+                                    <td>${h.stockName}</td>
+                                    <td style="text-align: right;">${h.shares?.toLocaleString()}</td>
+                                    <td style="text-align: right;">${h.weight}%</td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                        ${snapshot.holdings && snapshot.holdings.length > 10 ? `
+                            <p style="color: #666; font-size: 12px; margin-top: 8px; font-style: italic;">
+                                ※ 共有 ${snapshot.totalCount} 筆資料，僅顯示前 10 筆
+                            </p>
+                        ` : ''}
+                    </div>
+                `;
+                document.getElementById('result').innerHTML = html;
+                checkHealth();
+            } else {
+                const errorHtml = `
+                    <div style="background: #f8d7da; padding: 16px; border-radius: 8px;">
+                        <h3 style="color: #721c24; margin: 0 0 8px 0;">❌ 抓取失敗</h3>
+                        <p style="color: #721c24; margin: 0;">${data.message || '未知錯誤'}</p>
+                    </div>
+                `;
+                document.getElementById('result').innerHTML = errorHtml;
+            }
+        }
+        
+        async function getLatest() {
+            const data = await api('/holdings/latest');
+            if (data.success && data.data) {
+                const snapshot = data.data;
+                let html = `<h3>📅 ${snapshot.date} 持倉資料</h3>`;
+                html += `<p>成分股數量: ${snapshot.totalCount}</p>`;
+                html += '<table><tr><th>代碼</th><th>名稱</th><th>股數</th><th>權重</th></tr>';
+                (snapshot.holdings || []).forEach(h => {
+                    html += `<tr><td>${h.stockCode}</td><td>${h.stockName}</td><td>${h.shares?.toLocaleString()}</td><td>${h.weight}%</td></tr>`;
+                });
+                html += '</table>';
+                document.getElementById('result').innerHTML = html;
+            } else {
+                renderResult(data.message ? data : { message: '尚無資料，請先抓取' });
+            }
+        }
+        
+        async function loadDates() {
+            const select = document.getElementById('dateSelect');
+            const startSelect = document.getElementById('startDateSelect');
+            const endSelect = document.getElementById('endDateSelect');
+            
+            const data = await api('/holdings/dates');
+            
+            if (data.success && data.data && data.data.availableDates) {
+                const dates = data.data.availableDates;
+                const options = dates.map(date => `<option value="${date}">${date}</option>`).join('');
+                
+                select.innerHTML = options;
+                startSelect.innerHTML = options;
+                endSelect.innerHTML = options;
+                
+                if (dates.length >= 2) {
+                    // 預設選取最近兩天
+                    startSelect.selectedIndex = 1; // 昨天
+                    endSelect.selectedIndex = 0;   // 今天
+                }
+                
+                if (dates.length === 0) {
+                    const noData = '<option value="">無可用日期</option>';
+                    select.innerHTML = noData;
+                    startSelect.innerHTML = noData;
+                    endSelect.innerHTML = noData;
+                }
+            } else {
+                const error = '<option value="">載入失敗</option>';
+                select.innerHTML = error;
+                startSelect.innerHTML = error;
+                endSelect.innerHTML = error;
+            }
+        }
+
+        async function compareRange() {
+            const startDate = document.getElementById('startDateSelect').value;
+            const endDate = document.getElementById('endDateSelect').value;
+            
+            if (!startDate || !endDate) {
+                alert('請選擇起始與結束日期');
+                return;
+            }
+            
+            const data = await api(`/holdings/compare?startDate=${startDate}&endDate=${endDate}`);
+            
+            if (data.success && data.data) {
+                const result = data.data;
+                let html = `<h3>📊 區間比較: ${result.startDate} -> ${result.endDate}</h3>`;
+                
+                // 摘要
+                html += `<div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <span class="status status-up">新進: ${result.newAdditions.length}</span>
+                    <span class="status status-down">剔除: ${result.removals.length}</span>
+                    <span class="status status-degraded">增持: ${result.increased.length}</span>
+                    <span class="status status-up">減持: ${result.decreased.length}</span>
+                </div>`;
+                
+                // 新進
+                if (result.newAdditions.length > 0) {
+                    html += `<h4 style="color: #d32f2f; margin-top: 16px;">🔥 新進成分股 (${result.newAdditions.length})</h4>`;
+                    html += renderChangeTable(result.newAdditions, 'new');
+                }
+                
+                // 剔除
+                if (result.removals.length > 0) {
+                    html += `<h4 style="color: #388e3c; margin-top: 16px;">🗑️ 剔除成分股 (${result.removals.length})</h4>`;
+                    html += renderChangeTable(result.removals, 'removed');
+                }
+                
+                // 增持
+                if (result.increased.length > 0) {
+                    html += `<h4 style="color: #d32f2f; margin-top: 16px;">📈 增持 (${result.increased.length})</h4>`;
+                    html += renderChangeTable(result.increased, 'increased');
+                }
+                
+                // 減持
+                if (result.decreased.length > 0) {
+                    html += `<h4 style="color: #388e3c; margin-top: 16px;">📉 減持 (${result.decreased.length})</h4>`;
+                    html += renderChangeTable(result.decreased, 'decreased');
+                }
+                
+                document.getElementById('result').innerHTML = html;
+            } else {
+                renderResult(data.message ? data : { message: '比較失敗' });
+            }
+        }
+        
+        function renderChangeTable(list, type) {
+            let html = '<table><tr><th>代碼</th><th>名稱</th><th>變動股數</th><th>變動比例</th><th>權重變化</th></tr>';
+            list.forEach(item => {
+                const diffClass = item.sharesDiff > 0 ? 'increase' : (item.sharesDiff < 0 ? 'decrease' : '');
+                const diffSign = item.sharesDiff > 0 ? '+' : '';
+                const weightSign = item.weightDiff > 0 ? '+' : '';
+                
+                html += `<tr>
+                    <td>${item.stockCode}</td>
+                    <td>${item.stockName}</td>
+                    <td class="${diffClass}">${diffSign}${item.sharesDiff?.toLocaleString() || '-'}</td>
+                    <td class="${diffClass}">${item.changeRatio != null ? item.changeRatio + '%' : '-'}</td>
+                    <td>${weightSign}${item.weightDiff}%</td>
+                </tr>`;
+            });
+            html += '</table>';
+            return html;
+        }
+
+        async function getByDate() {
+            const date = document.getElementById('dateSelect').value;
+            if (!date) {
+                alert('請先選擇日期');
+                return;
+            }
+            
+            const data = await api(`/holdings/${date}`);
+            if (data.success && data.data) {
+                const snapshot = data.data;
+                let html = `<h3>📅 ${snapshot.date} 持倉資料</h3>`;
+                html += `<p>成分股數量: ${snapshot.totalCount}</p>`;
+                html += '<table><tr><th>代碼</th><th>名稱</th><th>股數</th><th>權重</th></tr>';
+                (snapshot.holdings || []).forEach(h => {
+                    html += `<tr><td>${h.stockCode}</td><td>${h.stockName}</td><td>${h.shares?.toLocaleString()}</td><td>${h.weight}%</td></tr>`;
+                });
+                html += '</table>';
+                document.getElementById('result').innerHTML = html;
+            } else {
+                renderResult(data.message ? data : { message: '查無資料' });
+            }
+        }
+        
+        async function previewCleanup() {
+            const data = await api('/holdings/cleanup?daysToKeep=90&confirm=false', 'DELETE');
+            
+            if (data.success && data.data) {
+                const result = data.data;
+                const hasExpired = result.deletedRecords > 0;
+                
+                let html = `
+                    <div style="background: #fff3cd; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="color: #856404; margin: 0 0 8px 0;">🔍 清理預覽</h3>
+                        <div style="color: #856404; font-size: 14px;">
+                            <p><strong>保留天數：</strong> ${result.remainingDays} 天</p>
+                            <p><strong>截止日期：</strong> ${result.cutoffDate || '無'}</p>
+                            <p><strong>將要刪除的記錄數：</strong> <span style="font-size: 16px; font-weight: bold; color: #d32f2f;">${result.deletedRecords}</span></p>
+                            <p><strong>刪除後將剩餘的記錄數：</strong> ${result.remainingRecords}</p>
+                        </div>
+                    </div>
+                `;
+                
+                if (hasExpired) {
+                    html += `
+                        <div style="background: #f0f0f0; padding: 16px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                            <h4 style="color: #333; margin-top: 0;">⚠️ 即將刪除過期資料</h4>
+                            <p style="color: #666; margin: 0;">
+                                您有 <strong>${result.deletedRecords}</strong> 筆過期資料即將被刪除。<br>
+                                點擊下方「❌ 確認清理」按鈕以繼續進行刪除操作。
+                            </p>
+                        </div>
+                    `;
+                    // 顯示確認清理按鈕
+                    document.getElementById('confirmCleanupBtn').style.display = 'inline-block';
+                } else {
+                    html += `
+                        <div style="background: #d4edda; padding: 16px; border-radius: 8px; border-left: 4px solid #28a745;">
+                            <h4 style="color: #155724; margin-top: 0;">✅ 無需清理</h4>
+                            <p style="color: #155724; margin: 0;">
+                                所有資料都在保留期限內，無需進行清理操作。
+                            </p>
+                        </div>
+                    `;
+                    // 隱藏確認清理按鈕
+                    document.getElementById('confirmCleanupBtn').style.display = 'none';
+                }
+                
+                document.getElementById('result').innerHTML = html;
+            } else {
+                const errorHtml = `
+                    <div style="background: #f8d7da; padding: 16px; border-radius: 8px;">
+                        <h3 style="color: #721c24; margin: 0 0 8px 0;">❌ 預覽失敗</h3>
+                        <p style="color: #721c24; margin: 0;">${data.message || '未知錯誤'}</p>
+                    </div>
+                `;
+                document.getElementById('result').innerHTML = errorHtml;
+            }
+        }
+        
+        async function confirmCleanup() {
+            if (!confirm('確定要刪除過期資料？此操作無法復原！')) {
+                return;
+            }
+            
+            const data = await api('/holdings/cleanup?daysToKeep=90&confirm=true', 'DELETE');
+            
+            // 清理完成後，隱藏「確認清理」按鈕
+            document.getElementById('confirmCleanupBtn').style.display = 'none';
+            
+            if (data.success && data.data) {
+                const result = data.data;
+                
+                let html = `
+                    <div style="background: #d4edda; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="color: #155724; margin: 0 0 8px 0;">✅ 清理完成</h3>
+                        <div style="color: #155724; font-size: 14px;">
+                            <p><strong>已刪除的記錄數：</strong> <span style="font-size: 16px; font-weight: bold;">${result.deletedRecords}</span></p>
+                            <p><strong>截止日期：</strong> ${result.cutoffDate || '無'}</p>
+                            <p><strong>刪除後剩餘的記錄數：</strong> ${result.remainingRecords}</p>
+                            <p><strong>操作時間：</strong> ${new Date(result.executedAt).toLocaleString('zh-TW')}</p>
+                        </div>
+                    </div>
+                    <div style="background: #f0f0f0; padding: 16px; border-radius: 8px;">
+                        <p style="color: #333; margin: 0;">${result.message}</p>
+                    </div>
+                `;
+                
+                document.getElementById('result').innerHTML = html;
+                
+                // 刪除成功後重新載入日期清單
+                if (result.success) {
+                    loadDates();
+                }
+            } else {
+                const errorHtml = `
+                    <div style="background: #f8d7da; padding: 16px; border-radius: 8px;">
+                        <h3 style="color: #721c24; margin: 0 0 8px 0;">❌ 清理失敗</h3>
+                        <p style="color: #721c24; margin: 0;">${data.message || '未知錯誤'}</p>
+                    </div>
+                `;
+                document.getElementById('result').innerHTML = errorHtml;
+            }
+        }
+        
+        // 初始化
+        checkHealth();
+        loadDates();
+        // 改為 5 分鐘檢查一次，避免日誌過多
+        setInterval(checkHealth, 300000);
+    </script>
+</body>
+</html>

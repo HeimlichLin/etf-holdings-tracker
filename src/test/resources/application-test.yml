@@ -1,0 +1,50 @@
+# ETF Holdings Tracker 測試環境配置
+# 覆蓋 application.yml 中的設定用於測試
+
+spring:
+  application:
+    name: etf-holdings-tracker-test
+
+# 測試用伺服器配置
+server:
+  port: 0  # 隨機埠號
+
+# 測試用應用程式配置
+app:
+  # 測試用資料儲存配置
+  data:
+    storage-path: ./target/test-data
+    file-name: test-holdings.xlsx
+    retention-days: 30
+
+  # 測試用網頁擷取配置
+  scraper:
+    target-url: http://localhost:8888/mock/etf  # 測試用模擬伺服器
+    timeout-seconds: 5
+    max-retries: 1
+    retry-delays:
+      - 1
+    user-agent: "TestAgent/1.0"
+
+  # 測試用 HTTP 客戶端配置
+  http-client:
+    max-idle-connections: 2
+    keep-alive-duration-seconds: 60
+    connect-timeout-seconds: 5
+    read-timeout-seconds: 10
+    write-timeout-seconds: 10
+
+# 測試用日誌配置
+logging:
+  level:
+    root: WARN
+    com.etf.tracker: DEBUG
+    org.springframework.web: INFO
+    org.apache.poi: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{20} - %msg%n"
+
+# 停用 Actuator
+management:
+  endpoints:
+    enabled-by-default: false

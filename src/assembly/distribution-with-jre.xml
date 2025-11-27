@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.2.0 http://maven.apache.org/xsd/assembly-2.2.0.xsd">
+    <id>windows-x64</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+    
+    <!-- Include the Spring Boot fat JAR -->
+    <files>
+        <file>
+            <source>${project.build.directory}/${project.build.finalName}.jar</source>
+            <outputDirectory>/</outputDirectory>
+            <destName>etf-holdings-tracker.jar</destName>
+        </file>
+    </files>
+    
+    <!-- Include scripts and resources -->
+    <fileSets>
+        <!-- Windows batch scripts (use embedded JRE) -->
+        <fileSet>
+            <directory>src/dist-jre</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*.bat</include>
+                <include>*.cmd</include>
+                <include>*.vbs</include>
+            </includes>
+            <lineEnding>windows</lineEnding>
+        </fileSet>
+        
+        <!-- README and documentation -->
+        <fileSet>
+            <directory>${project.basedir}</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>README.md</include>
+            </includes>
+        </fileSet>
+        
+        <!-- Embedded JRE (must be prepared before build) -->
+        <fileSet>
+            <directory>${project.build.directory}/jre</directory>
+            <outputDirectory>/jre</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+        
+        <!-- Data directory structure -->
+        <fileSet>
+            <directory>src/dist/data</directory>
+            <outputDirectory>/data</outputDirectory>
+            <excludes>
+                <exclude>**/*</exclude>
+            </excludes>
+        </fileSet>
+        
+        <!-- Logs directory structure -->
+        <fileSet>
+            <directory>src/dist/logs</directory>
+            <outputDirectory>/logs</outputDirectory>
+            <excludes>
+                <exclude>**/*</exclude>
+            </excludes>
+        </fileSet>
+    </fileSets>
+</assembly>

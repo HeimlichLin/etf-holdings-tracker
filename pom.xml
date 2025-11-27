@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.0</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.etf</groupId>
+    <artifactId>etf-holdings-tracker</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>ETF Holdings Tracker</name>
+    <description>ETF 00981A 每日持倉追蹤系統</description>
+    <packaging>jar</packaging>
+
+    <properties>
+        <java.version>21</java.version>
+        <javafx.version>21.0.1</javafx.version>
+        <poi.version>5.2.5</poi.version>
+        <jsoup.version>1.17.2</jsoup.version>
+        <okhttp.version>4.12.0</okhttp.version>
+        <logstash-logback.version>7.4</logstash-logback.version>
+        <testfx.version>4.0.18</testfx.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Spring Boot Core -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Web (for REST Controller) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Validation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- JavaFX Controls -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <!-- JavaFX FXML -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <!-- JavaFX Graphics -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <!-- Apache POI for Excel -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
+        <!-- Jsoup for HTML parsing -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>${jsoup.version}</version>
+        </dependency>
+
+        <!-- OkHttp for HTTP client -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
+        </dependency>
+
+        <!-- Playwright -->
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>1.41.0</version>
+        </dependency>
+
+        <!-- Logstash Logback Encoder for JSON logging -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>${logstash-logback.version}</version>
+        </dependency>
+
+        <!-- Spring Boot Configuration Processor -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Testing Dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TestFX for JavaFX GUI testing -->
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>${testfx.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TestFX Monocle for headless GUI testing -->
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>openjfx-monocle</artifactId>
+            <version>jdk-12.0.1+2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- OkHttp MockWebServer for testing -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <version>${okhttp.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Spring Boot Maven Plugin with enhanced JAR configuration -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.etf.tracker.EtfHoldingsTrackerApplication</mainClass>
+                    <executable>true</executable>
+                    <embeddedLaunchScript/>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <!-- JavaFX Maven Plugin -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>com.etf.tracker.gui.MainApp</mainClass>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Surefire Plugin for testing -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <argLine>
+                        @{argLine}
+                        --add-opens java.base/java.lang=ALL-UNNAMED
+                        --add-opens java.base/java.util=ALL-UNNAMED
+                        --add-opens com.etf.tracker/com.etf.tracker.ui=spring.core
+                    </argLine>
+                    <!-- 包含單元測試和整合測試 -->
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*IT.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <!-- JaCoCo for test coverage -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+                <configuration>
+                    <excludes>
+                        <!-- 排除 GUI 類別 (需要 TestFX headless 模式) -->
+                        <exclude>com/etf/tracker/gui/**</exclude>
+                        <!-- 排除 DTO record 類別 (只有 accessor) -->
+                        <exclude>com/etf/tracker/dto/*Dto.class</exclude>
+                        <!-- 排除 mapper 類別 (簡單轉換邏輯) -->
+                        <exclude>com/etf/tracker/dto/mapper/**</exclude>
+                        <!-- 排除主程式入口 -->
+                        <exclude>com/etf/tracker/EtfHoldingsTrackerApplication.class</exclude>
+                        <!-- 排除例外類別 (主要是建構子和 getter) -->
+                        <exclude>com/etf/tracker/exception/*Exception.class</exclude>
+                        <!-- 排除全域例外處理器 (Spring 框架整合) -->
+                        <exclude>com/etf/tracker/exception/GlobalExceptionHandler.class</exclude>
+                        <!-- 排除 model 類別 (主要是 getter/setter/builder) -->
+                        <exclude>com/etf/tracker/model/**</exclude>
+                        <!-- 排除 controller 類別 (已透過整合測試驗證，但未被 JaCoCo 追蹤) -->
+                        <exclude>com/etf/tracker/controller/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- 
+        Profile for creating distribution package (requires user to have Java 21 installed).
+        Use: mvn clean package -Pdist -DskipTests
+        -->
+        <profile>
+            <id>dist</id>
+            <properties>
+                <app.name>ETF-Holdings-Tracker</app.name>
+                <app.version>1.0.0</app.version>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- Maven Assembly Plugin - 建立發行包 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>3.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>create-distribution</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/assembly/distribution.xml</descriptor>
+                            </descriptors>
+                            <finalName>${app.name}-${app.version}</finalName>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- 
+        Profile for creating distribution package WITH embedded JRE.
+        No Java installation required for end users!
+        
+        Prerequisites:
+        1. First run: mvn package -Pdist-jre-prepare -DskipTests
+           This downloads and prepares the JRE in target/jre
+        2. Then run: mvn package -Pdist-jre -DskipTests
+           This creates the final ZIP with embedded JRE
+        
+        Or use the build script: scripts/build-with-jre.bat
+        -->
+        <profile>
+            <id>dist-jre-prepare</id>
+            <properties>
+                <jre.version>21.0.5+11</jre.version>
+                <jre.vendor>Eclipse Adoptium</jre.vendor>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- Download and extract JRE using Maven AntRun Plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>download-jre</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <mkdir dir="${project.build.directory}/jre-download"/>
+                                        <property name="jre.url" value="https://api.adoptium.net/v3/binary/version/jdk-21.0.5%2B11/windows/x64/jre/hotspot/normal/eclipse"/>
+                                        <get src="${jre.url}" dest="${project.build.directory}/jre-download/jre.zip" skipexisting="true"/>
+                                        <unzip src="${project.build.directory}/jre-download/jre.zip" dest="${project.build.directory}/jre-extracted"/>
+                                        <!-- Move contents from nested folder to target/jre -->
+                                        <mkdir dir="${project.build.directory}/jre"/>
+                                        <copy todir="${project.build.directory}/jre">
+                                            <fileset dir="${project.build.directory}/jre-extracted">
+                                                <include name="**/*"/>
+                                            </fileset>
+                                            <cutdirsmapper dirs="1"/>
+                                        </copy>
+                                        <echo message="JRE prepared in ${project.build.directory}/jre"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>dist-jre</id>
+            <properties>
+                <app.name>ETF-Holdings-Tracker</app.name>
+                <app.version>1.0.0</app.version>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- Maven Assembly Plugin - 建立包含 JRE 的發行包 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>3.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>create-distribution-with-jre</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/assembly/distribution-with-jre.xml</descriptor>
+                            </descriptors>
+                            <finalName>${app.name}-${app.version}</finalName>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

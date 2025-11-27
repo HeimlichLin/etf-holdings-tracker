@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.etf.tracker.gui.view.RangeCompareViewController"
+            prefWidth="1100" prefHeight="800"
+            fx:id="rootPane">
+
+    <!-- 頂部：標題與日期選擇 -->
+    <top>
+        <VBox fx:id="headerContainer">
+            <!-- 標題列 -->
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="header-bar" fx:id="headerBar">
+                <padding>
+                    <Insets top="12" bottom="12" left="20" right="20"/>
+                </padding>
+                <Button text="← 返回" onAction="#handleBack" styleClass="back-button"/>
+                <Label text="區間持倉比較" styleClass="page-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="statusLabel" text="就緒" styleClass="status-label"/>
+            </HBox>
+
+            <!-- 日期區間選擇工具列 -->
+            <HBox spacing="16" alignment="CENTER_LEFT" styleClass="query-bar" fx:id="queryBar">
+                <padding>
+                    <Insets top="12" bottom="12" left="20" right="20"/>
+                </padding>
+                <Label text="起始日期：" styleClass="label-bold"/>
+                <DatePicker fx:id="startDatePicker" prefWidth="160"/>
+                <Label text="結束日期：" styleClass="label-bold"/>
+                <DatePicker fx:id="endDatePicker" prefWidth="160"/>
+                <Button fx:id="compareButton" text="📊 比較" onAction="#handleCompare" styleClass="primary-button"/>
+                <Separator orientation="VERTICAL"/>
+                <Button text="⚡ 快速選擇" styleClass="secondary-button" onAction="#showQuickSelectMenu"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- 中央：資料顯示區 -->
+    <center>
+        <VBox spacing="12" fx:id="contentContainer">
+            <padding>
+                <Insets top="16" bottom="16" left="20" right="20"/>
+            </padding>
+
+            <!-- 摘要統計卡片 -->
+            <HBox spacing="24" alignment="CENTER" styleClass="summary-card" fx:id="summaryCard"
+                  HBox.hgrow="ALWAYS">
+                <padding>
+                    <Insets top="18" bottom="18" left="24" right="24"/>
+                </padding>
+                <VBox alignment="CENTER" spacing="6">
+                    <Label text="起始日期" styleClass="summary-label"/>
+                    <Label fx:id="startDateLabel" text="-" styleClass="summary-value"/>
+                </VBox>
+                <Label text="→" styleClass="arrow-label"/>
+                <VBox alignment="CENTER" spacing="6">
+                    <Label text="結束日期" styleClass="summary-label"/>
+                    <Label fx:id="endDateLabel" text="-" styleClass="summary-value"/>
+                </VBox>
+                <Separator orientation="VERTICAL"/>
+                <VBox alignment="CENTER" spacing="6" styleClass="summary-new">
+                    <Label text="新進" styleClass="summary-label"/>
+                    <Label fx:id="newAdditionsLabel" text="0" styleClass="summary-value-new"/>
+                </VBox>
+                <VBox alignment="CENTER" spacing="6" styleClass="summary-removed">
+                    <Label text="剔除" styleClass="summary-label"/>
+                    <Label fx:id="removalsLabel" text="0" styleClass="summary-value-removed"/>
+                </VBox>
+                <VBox alignment="CENTER" spacing="6" styleClass="summary-increased">
+                    <Label text="增持" styleClass="summary-label"/>
+                    <Label fx:id="increasedLabel" text="0" styleClass="summary-value-increased"/>
+                </VBox>
+                <VBox alignment="CENTER" spacing="6" styleClass="summary-decreased">
+                    <Label text="減持" styleClass="summary-label"/>
+                    <Label fx:id="decreasedLabel" text="0" styleClass="summary-value-decreased"/>
+                </VBox>
+                <VBox alignment="CENTER" spacing="6">
+                    <Label text="不變" styleClass="summary-label"/>
+                    <Label fx:id="unchangedLabel" text="0" styleClass="summary-value"/>
+                </VBox>
+            </HBox>
+
+            <!-- 分類標籤頁 -->
+            <TabPane fx:id="categoryTabPane" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+                <!-- 新進增持 -->
+                <Tab text="🆕 新進增持">
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" bottom="8" left="0" right="0"/>
+                        </padding>
+                        <TableView fx:id="newAdditionsTable" VBox.vgrow="ALWAYS" styleClass="change-table">
+                            <columns>
+                                <TableColumn fx:id="naStockCodeColumn" text="股票代號" prefWidth="100" minWidth="80"/>
+                                <TableColumn fx:id="naStockNameColumn" text="股票名稱" prefWidth="180" minWidth="120"/>
+                                <TableColumn fx:id="naEndSharesColumn" text="持股數" prefWidth="130" minWidth="100"/>
+                                <TableColumn fx:id="naEndWeightColumn" text="權重(%)" prefWidth="100" minWidth="80"/>
+                            </columns>
+                            <placeholder>
+                                <VBox alignment="CENTER" spacing="8" styleClass="empty-state">
+                                    <Label text="無新進增持" styleClass="placeholder-text"/>
+                                </VBox>
+                            </placeholder>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
+                        </TableView>
+                    </VBox>
+                </Tab>
+
+                <!-- 剔除減持 -->
+                <Tab text="🚫 剔除減持">
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" bottom="8" left="0" right="0"/>
+                        </padding>
+                        <TableView fx:id="removalsTable" VBox.vgrow="ALWAYS" styleClass="change-table">
+                            <columns>
+                                <TableColumn fx:id="rmStockCodeColumn" text="股票代號" prefWidth="100" minWidth="80"/>
+                                <TableColumn fx:id="rmStockNameColumn" text="股票名稱" prefWidth="180" minWidth="120"/>
+                                <TableColumn fx:id="rmStartSharesColumn" text="原持股數" prefWidth="130" minWidth="100"/>
+                                <TableColumn fx:id="rmStartWeightColumn" text="原權重(%)" prefWidth="100" minWidth="80"/>
+                            </columns>
+                            <placeholder>
+                                <VBox alignment="CENTER" spacing="8" styleClass="empty-state">
+                                    <Label text="無剔除減持" styleClass="placeholder-text"/>
+                                </VBox>
+                            </placeholder>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
+                        </TableView>
+                    </VBox>
+                </Tab>
+
+                <!-- 增持 -->
+                <Tab text="📈 增持">
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" bottom="8" left="0" right="0"/>
+                        </padding>
+                        <TableView fx:id="increasedTable" VBox.vgrow="ALWAYS" styleClass="change-table">
+                            <columns>
+                                <TableColumn fx:id="incStockCodeColumn" text="股票代號" prefWidth="80" minWidth="70"/>
+                                <TableColumn fx:id="incStockNameColumn" text="股票名稱" prefWidth="150" minWidth="100"/>
+                                <TableColumn fx:id="incStartSharesColumn" text="起始股數" prefWidth="110" minWidth="90"/>
+                                <TableColumn fx:id="incEndSharesColumn" text="結束股數" prefWidth="110" minWidth="90"/>
+                                <TableColumn fx:id="incSharesDiffColumn" text="增減股數" prefWidth="100" minWidth="80"/>
+                                <TableColumn fx:id="incChangeRatioColumn" text="變化率(%)" prefWidth="90" minWidth="70"/>
+                                <TableColumn fx:id="incWeightDiffColumn" text="權重變化" prefWidth="90" minWidth="70"/>
+                            </columns>
+                            <placeholder>
+                                <VBox alignment="CENTER" spacing="8" styleClass="empty-state">
+                                    <Label text="無增持" styleClass="placeholder-text"/>
+                                </VBox>
+                            </placeholder>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
+                        </TableView>
+                    </VBox>
+                </Tab>
+
+                <!-- 減持 -->
+                <Tab text="📉 減持">
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" bottom="8" left="0" right="0"/>
+                        </padding>
+                        <TableView fx:id="decreasedTable" VBox.vgrow="ALWAYS" styleClass="change-table">
+                            <columns>
+                                <TableColumn fx:id="decStockCodeColumn" text="股票代號" prefWidth="80" minWidth="70"/>
+                                <TableColumn fx:id="decStockNameColumn" text="股票名稱" prefWidth="150" minWidth="100"/>
+                                <TableColumn fx:id="decStartSharesColumn" text="起始股數" prefWidth="110" minWidth="90"/>
+                                <TableColumn fx:id="decEndSharesColumn" text="結束股數" prefWidth="110" minWidth="90"/>
+                                <TableColumn fx:id="decSharesDiffColumn" text="增減股數" prefWidth="100" minWidth="80"/>
+                                <TableColumn fx:id="decChangeRatioColumn" text="變化率(%)" prefWidth="90" minWidth="70"/>
+                                <TableColumn fx:id="decWeightDiffColumn" text="權重變化" prefWidth="90" minWidth="70"/>
+                            </columns>
+                            <placeholder>
+                                <VBox alignment="CENTER" spacing="8" styleClass="empty-state">
+                                    <Label text="無減持" styleClass="placeholder-text"/>
+                                </VBox>
+                            </placeholder>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
+                        </TableView>
+                    </VBox>
+                </Tab>
+
+                <!-- 不變 -->
+                <Tab text="➖ 不變">
+                    <VBox spacing="8">
+                        <padding>
+                            <Insets top="8" bottom="8" left="0" right="0"/>
+                        </padding>
+                        <TableView fx:id="unchangedTable" VBox.vgrow="ALWAYS" styleClass="change-table">
+                            <columns>
+                                <TableColumn fx:id="uncStockCodeColumn" text="股票代號" prefWidth="100" minWidth="80"/>
+                                <TableColumn fx:id="uncStockNameColumn" text="股票名稱" prefWidth="180" minWidth="120"/>
+                                <TableColumn fx:id="uncSharesColumn" text="持股數" prefWidth="130" minWidth="100"/>
+                                <TableColumn fx:id="uncStartWeightColumn" text="起始權重(%)" prefWidth="110" minWidth="90"/>
+                                <TableColumn fx:id="uncEndWeightColumn" text="結束權重(%)" prefWidth="110" minWidth="90"/>
+                                <TableColumn fx:id="uncWeightDiffColumn" text="權重變化" prefWidth="100" minWidth="80"/>
+                            </columns>
+                            <placeholder>
+                                <VBox alignment="CENTER" spacing="8" styleClass="empty-state">
+                                    <Label text="無不變" styleClass="placeholder-text"/>
+                                </VBox>
+                            </placeholder>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
+                        </TableView>
+                    </VBox>
+                </Tab>
+            </TabPane>
+
+            <!-- 底部資訊列 -->
+            <HBox spacing="12" alignment="CENTER_LEFT" fx:id="footerBar">
+                <Label fx:id="recordCountLabel" text="共 0 筆變化"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="🔴 紅色表示增持/新進，🟢 綠色表示減持/剔除" styleClass="hint-label"/>
+            </HBox>
+        </VBox>
+    </center>
+
+    <!-- 底部：狀態列 -->
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="status-bar" fx:id="statusBar">
+            <padding>
+                <Insets top="6" bottom="6" left="20" right="20"/>
+            </padding>
+            <ProgressIndicator fx:id="progressIndicator" visible="false" prefWidth="18" prefHeight="18"/>
+            <Label fx:id="progressLabel" text=""/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="ESC 返回" styleClass="shortcut-hint"/>
+            <Label text="|" styleClass="nav-separator"/>
+            <Label text="ETF 00981A 區間持倉比較"/>
+        </HBox>
+    </bottom>
+</BorderPane>

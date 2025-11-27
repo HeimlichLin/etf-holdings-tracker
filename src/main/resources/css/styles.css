@@ -1,0 +1,786 @@
+/*
+ * ETF 00981A 持倉追蹤器 - 現代化主題樣式
+ * 使用 Material Design 3 風格配色 + 響應式設計
+ * 
+ * @version 2.0.0 - 新增現代化視覺效果與響應式支援
+ */
+
+/* ========== CSS 變數定義 ========== */
+.root {
+    /* 主色調 */
+    -fx-primary: #1976D2;
+    -fx-primary-dark: #1565C0;
+    -fx-primary-light: #42A5F5;
+    -fx-on-primary: white;
+    
+    /* 次要色調 */
+    -fx-secondary: #FF9800;
+    -fx-secondary-dark: #E65100;
+    -fx-secondary-light: #FFB74D;
+    -fx-on-secondary: white;
+    
+    /* 背景色 */
+    -fx-background-primary: #f8f9fa;
+    -fx-background-secondary: white;
+    -fx-surface: white;
+    
+    /* 文字色 */
+    -fx-text-primary: #212121;
+    -fx-text-secondary: #757575;
+    -fx-text-hint: #9e9e9e;
+    
+    /* 邊框與分隔 */
+    -fx-app-border-color: #e0e0e0;
+    -fx-divider: #eeeeee;
+    
+    /* 增減顏色 (台股慣例: 紅增綠減) */
+    -fx-increase: #d32f2f;
+    -fx-increase-light: #ff5252;
+    -fx-decrease: #388e3c;
+    -fx-decrease-light: #69f0ae;
+    
+    /* 陰影效果 */
+    -fx-shadow-light: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+    -fx-shadow-medium: dropshadow(gaussian, rgba(0,0,0,0.12), 12, 0, 0, 4);
+    -fx-shadow-heavy: dropshadow(gaussian, rgba(0,0,0,0.16), 16, 0, 0, 6);
+    
+    /* 圓角 */
+    -fx-radius-sm: 4px;
+    -fx-radius-md: 8px;
+    -fx-radius-lg: 12px;
+    
+    /* 過渡時間 */
+    -fx-transition-fast: 0.15s;
+    -fx-transition-normal: 0.25s;
+    -fx-transition-slow: 0.35s;
+    
+    /* 基礎設定 */
+    -fx-font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans CJK TC", system-ui, sans-serif;
+    -fx-font-size: 14px;
+    -fx-background-color: -fx-background-primary;
+}
+
+/* ========== 響應式容器 ========== */
+.responsive-container {
+    -fx-padding: 16;
+    -fx-spacing: 12;
+}
+
+.responsive-container-compact {
+    -fx-padding: 12;
+    -fx-spacing: 8;
+}
+
+/* ========== 頂部標題列 ========== */
+.header-bar {
+    -fx-background-color: linear-gradient(to right, -fx-primary, -fx-primary-light);
+    -fx-padding: 16 24;
+    -fx-effect: -fx-shadow-medium;
+}
+
+.app-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-on-primary;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0, 0, 1);
+}
+
+.status-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.85);
+    -fx-font-size: 13px;
+    -fx-padding: 4 12;
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-background-radius: 12;
+}
+
+/* ========== 工具列 ========== */
+.tool-bar {
+    -fx-background-color: -fx-surface;
+    -fx-padding: 12 20;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-width: 0 0 1 0;
+    -fx-effect: -fx-shadow-light;
+}
+
+/* ========== 按鈕樣式 ========== */
+.button {
+    -fx-background-color: #e8e8e8;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 10 20;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-font-weight: 500;
+}
+
+.button:hover {
+    -fx-background-color: #d8d8d8;
+    -fx-effect: -fx-shadow-light;
+}
+
+.button:pressed {
+    -fx-background-color: #c8c8c8;
+    -fx-effect: none;
+}
+
+.button:disabled {
+    -fx-opacity: 0.5;
+    -fx-cursor: default;
+}
+
+.button:focused {
+    -fx-border-color: -fx-primary;
+    -fx-border-width: 2;
+    -fx-border-radius: 6;
+}
+
+.primary-button {
+    -fx-background-color: -fx-primary;
+    -fx-text-fill: -fx-on-primary;
+    -fx-font-weight: bold;
+    -fx-effect: -fx-shadow-light;
+}
+
+.primary-button:hover {
+    -fx-background-color: -fx-primary-dark;
+    -fx-effect: -fx-shadow-medium;
+}
+
+.primary-button:pressed {
+    -fx-background-color: #0D47A1;
+    -fx-effect: -fx-shadow-light;
+}
+
+.secondary-button {
+    -fx-background-color: -fx-secondary;
+    -fx-text-fill: -fx-on-secondary;
+    -fx-font-weight: 600;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #F57C00;
+    -fx-effect: -fx-shadow-light;
+}
+
+.secondary-button:pressed {
+    -fx-background-color: -fx-secondary-dark;
+}
+
+/* 導航按鈕 */
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: rgba(255, 255, 255, 0.7);
+    -fx-padding: 10 16;
+    -fx-background-radius: 6;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6;
+    -fx-font-weight: 500;
+}
+
+.nav-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-text-fill: white;
+}
+
+.nav-button-active {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-text-fill: white;
+    -fx-border-color: rgba(255, 255, 255, 0.5);
+    -fx-font-weight: bold;
+}
+
+/* 圖示按鈕 */
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-padding: 8;
+    -fx-background-radius: 50%;
+    -fx-min-width: 36;
+    -fx-min-height: 36;
+}
+
+.icon-button:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ========== 摘要區 ========== */
+.summary-bar {
+    -fx-background-color: -fx-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-radius: 12;
+    -fx-effect: -fx-shadow-light;
+    -fx-padding: 16 24;
+}
+
+.summary-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-weight: 500;
+    -fx-text-transform: uppercase;
+}
+
+.summary-value {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-primary;
+}
+
+.summary-value-small {
+    -fx-font-size: 14px;
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-weight: 500;
+}
+
+/* ========== 資料表格 ========== */
+.holdings-table {
+    -fx-background-color: -fx-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-radius: 12;
+    -fx-effect: -fx-shadow-light;
+}
+
+.holdings-table .column-header {
+    -fx-background-color: #fafafa;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 12;
+}
+
+.holdings-table .column-header .label {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 13px;
+}
+
+.holdings-table .table-row-cell {
+    -fx-border-color: transparent transparent -fx-divider transparent;
+    -fx-cell-size: 44px;
+}
+
+.holdings-table .table-row-cell:odd {
+    -fx-background-color: #fafafa;
+}
+
+.holdings-table .table-row-cell:even {
+    -fx-background-color: -fx-surface;
+}
+
+.holdings-table .table-row-cell:selected {
+    -fx-background-color: rgba(25, 118, 210, 0.12);
+}
+
+.holdings-table .table-row-cell:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.04);
+}
+
+.holdings-table .table-row-cell:selected:hover {
+    -fx-background-color: rgba(25, 118, 210, 0.18);
+}
+
+.holdings-table .table-cell {
+    -fx-padding: 12;
+    -fx-font-size: 13px;
+}
+
+/* ========== 日期選擇器 ========== */
+.date-picker {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.date-picker:hover {
+    -fx-border-color: -fx-text-secondary;
+}
+
+.date-picker:focused {
+    -fx-border-color: -fx-primary;
+    -fx-border-width: 2;
+}
+
+.date-picker .arrow-button {
+    -fx-background-color: transparent;
+}
+
+/* ========== 文字輸入框 ========== */
+.text-field {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10 14;
+    -fx-font-size: 14px;
+}
+
+.text-field:hover {
+    -fx-border-color: -fx-text-secondary;
+}
+
+.text-field:focused {
+    -fx-border-color: -fx-primary;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(25, 118, 210, 0.2), 4, 0, 0, 0);
+}
+
+.text-field .prompt-text {
+    -fx-text-fill: -fx-text-hint;
+}
+
+/* ========== 狀態列 ========== */
+.status-bar {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 8 16;
+}
+
+.status-bar .label {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-text-secondary;
+}
+
+/* ========== 對話框 ========== */
+.dialog-pane {
+    -fx-background-color: -fx-surface;
+    -fx-background-radius: 12;
+    -fx-effect: -fx-shadow-heavy;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #fafafa;
+    -fx-padding: 16 20;
+}
+
+.dialog-pane .content.label {
+    -fx-padding: 20;
+    -fx-font-size: 14px;
+}
+
+.dialog-pane .button-bar .button {
+    -fx-min-width: 90;
+    -fx-padding: 10 20;
+}
+
+/* ========== 載入訊息 ========== */
+.loading-message {
+    -fx-font-size: 14px;
+    -fx-text-fill: -fx-text-secondary;
+}
+
+/* ========== 捲軸 ========== */
+.scroll-bar {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #c0c0c0;
+    -fx-background-radius: 6;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #a0a0a0;
+}
+
+.scroll-bar .thumb:pressed {
+    -fx-background-color: #808080;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-padding: 0;
+}
+
+/* ========== 分隔線 ========== */
+.separator {
+    -fx-background-color: -fx-divider;
+}
+
+.separator:vertical {
+    -fx-padding: 0 8;
+}
+
+.separator:horizontal {
+    -fx-padding: 8 0;
+}
+
+/* ========== 提示訊息 ========== */
+.tooltip {
+    -fx-background-color: #424242;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 8 12;
+    -fx-background-radius: 6;
+    -fx-effect: -fx-shadow-medium;
+}
+
+/* ========== 進度指示器 ========== */
+.progress-indicator {
+    -fx-progress-color: -fx-primary;
+}
+
+.progress-indicator .percentage {
+    -fx-fill: -fx-primary;
+    -fx-font-size: 12px;
+}
+
+/* ========== Placeholder 樣式 ========== */
+.holdings-table .placeholder .label {
+    -fx-font-size: 16px;
+    -fx-text-fill: -fx-text-hint;
+}
+
+/* ========== User Story 3: 區間比較樣式 ========== */
+
+/* 頁面標題 */
+.page-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-on-primary;
+}
+
+/* 返回按鈕 */
+.back-button {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-text-fill: -fx-on-primary;
+    -fx-padding: 8 14;
+    -fx-background-radius: 6;
+    -fx-font-weight: 500;
+}
+
+.back-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.25);
+}
+
+.back-button:pressed {
+    -fx-background-color: rgba(255, 255, 255, 0.35);
+}
+
+/* 查詢工具列 */
+.query-bar {
+    -fx-background-color: -fx-surface;
+    -fx-padding: 14 20;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-width: 0 0 1 0;
+    -fx-effect: -fx-shadow-light;
+}
+
+.label-bold {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+}
+
+/* 摘要卡片 */
+.summary-card {
+    -fx-background-color: -fx-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-radius: 12;
+    -fx-effect: -fx-shadow-medium;
+    -fx-padding: 20 28;
+}
+
+.arrow-label {
+    -fx-font-size: 24px;
+    -fx-text-fill: -fx-text-hint;
+    -fx-font-weight: bold;
+}
+
+/* 增減顏色定義 - 紅增綠減 (台股慣例) */
+.summary-value-new,
+.summary-value-increased {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-increase;
+}
+
+.summary-value-removed,
+.summary-value-decreased {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-decrease;
+}
+
+/* 分類底線指示 */
+.summary-new {
+    -fx-border-color: -fx-increase;
+    -fx-border-width: 0 0 3 0;
+    -fx-padding: 0 16 10 16;
+}
+
+.summary-removed {
+    -fx-border-color: -fx-decrease;
+    -fx-border-width: 0 0 3 0;
+    -fx-padding: 0 16 10 16;
+}
+
+.summary-increased {
+    -fx-border-color: #ff7043;
+    -fx-border-width: 0 0 3 0;
+    -fx-padding: 0 16 10 16;
+}
+
+.summary-decreased {
+    -fx-border-color: #66bb6a;
+    -fx-border-width: 0 0 3 0;
+    -fx-padding: 0 16 10 16;
+}
+
+/* 變化表格樣式 */
+.change-table {
+    -fx-background-color: -fx-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-radius: 8;
+}
+
+.change-table .column-header {
+    -fx-background-color: #fafafa;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-width: 0 0 1 0;
+}
+
+.change-table .column-header .label {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+    -fx-padding: 10;
+    -fx-font-size: 12px;
+}
+
+.change-table .table-row-cell {
+    -fx-border-color: transparent transparent -fx-divider transparent;
+    -fx-cell-size: 40px;
+}
+
+.change-table .table-row-cell:odd {
+    -fx-background-color: #fafafa;
+}
+
+.change-table .table-row-cell:selected {
+    -fx-background-color: rgba(25, 118, 210, 0.12);
+}
+
+.change-table .table-row-cell:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* 表格儲存格顏色樣式 */
+.cell-increase {
+    -fx-text-fill: -fx-increase;
+    -fx-font-weight: bold;
+}
+
+.cell-decrease {
+    -fx-text-fill: -fx-decrease;
+    -fx-font-weight: bold;
+}
+
+.cell-neutral {
+    -fx-text-fill: -fx-text-secondary;
+}
+
+/* ========== 標籤頁樣式 ========== */
+.tab-pane {
+    -fx-tab-min-height: 36;
+}
+
+.tab-pane .tab-header-area {
+    -fx-padding: 8 0 0 16;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 8 8 0 0;
+    -fx-padding: 10 20;
+    -fx-border-color: transparent;
+}
+
+.tab-pane .tab:hover {
+    -fx-background-color: #e0e0e0;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-primary;
+    -fx-border-width: 2 0 0 0;
+    -fx-effect: -fx-shadow-light;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-fill: -fx-text-secondary;
+    -fx-font-size: 13px;
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: -fx-primary;
+    -fx-font-weight: bold;
+}
+
+.tab-pane .tab-content-area {
+    -fx-background-color: -fx-surface;
+    -fx-padding: 16;
+}
+
+/* ========== 下拉選單 ========== */
+.combo-box {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 2;
+}
+
+.combo-box:hover {
+    -fx-border-color: -fx-text-secondary;
+}
+
+.combo-box:focused {
+    -fx-border-color: -fx-primary;
+    -fx-border-width: 2;
+}
+
+.combo-box .list-cell {
+    -fx-padding: 8 12;
+    -fx-font-size: 13px;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -fx-surface;
+    -fx-effect: -fx-shadow-medium;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.04);
+}
+
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: rgba(25, 118, 210, 0.12);
+}
+
+/* ========== 占位提示 ========== */
+.placeholder-text {
+    -fx-font-size: 16px;
+    -fx-text-fill: -fx-text-hint;
+    -fx-padding: 20;
+}
+
+.placeholder-hint {
+    -fx-font-size: 13px;
+    -fx-text-fill: #bdbdbd;
+}
+
+/* ========== 提示文字 ========== */
+.hint-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-text-hint;
+    -fx-font-style: italic;
+}
+
+/* ========== 響應式 - 小視窗調整 ========== */
+.compact-mode .summary-card {
+    -fx-padding: 12 16;
+}
+
+.compact-mode .summary-value {
+    -fx-font-size: 18px;
+}
+
+.compact-mode .summary-label {
+    -fx-font-size: 11px;
+}
+
+.compact-mode .header-bar {
+    -fx-padding: 12 16;
+}
+
+.compact-mode .app-title {
+    -fx-font-size: 20px;
+}
+
+.compact-mode .tool-bar {
+    -fx-padding: 8 12;
+}
+
+.compact-mode .button {
+    -fx-padding: 8 14;
+    -fx-font-size: 13px;
+}
+
+/* ========== 動畫效果輔助類 ========== */
+.fade-in {
+    -fx-opacity: 1;
+}
+
+.fade-out {
+    -fx-opacity: 0;
+}
+
+/* ========== 快捷鍵提示 ========== */
+.shortcut-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fx-text-hint;
+    -fx-padding: 2 6;
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 4;
+}
+
+/* ========== 導航區域 ========== */
+.nav-container {
+    -fx-padding: 8 16;
+    -fx-spacing: 8;
+}
+
+.nav-separator {
+    -fx-padding: 0 8;
+}
+
+/* ========== 卡片容器 ========== */
+.card {
+    -fx-background-color: -fx-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -fx-app-border-color;
+    -fx-border-radius: 12;
+    -fx-effect: -fx-shadow-light;
+    -fx-padding: 16;
+}
+
+.card:hover {
+    -fx-effect: -fx-shadow-medium;
+}
+
+/* ========== 空狀態 ========== */
+.empty-state {
+    -fx-alignment: center;
+    -fx-spacing: 16;
+    -fx-padding: 48;
+}
+
+.empty-state-icon {
+    -fx-font-size: 48px;
+    -fx-text-fill: -fx-text-hint;
+}
+
+.empty-state-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.empty-state-message {
+    -fx-font-size: 14px;
+    -fx-text-fill: -fx-text-secondary;
+    -fx-text-alignment: center;
+}

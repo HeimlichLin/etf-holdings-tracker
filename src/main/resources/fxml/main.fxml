@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.etf.tracker.gui.MainViewController"
+            prefWidth="960" prefHeight="720"
+            fx:id="rootPane">
+
+    <!-- 頂部：標題與工具列 -->
+    <top>
+        <VBox fx:id="headerContainer">
+            <!-- 標題列 -->
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="header-bar" fx:id="headerBar">
+                <padding>
+                    <Insets top="12" bottom="12" left="20" right="20"/>
+                </padding>
+                <Label text="ETF 00981A 持倉追蹤器" styleClass="app-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <!-- 導航按鈕組 -->
+                <HBox spacing="8" styleClass="nav-container" fx:id="navContainer">
+                    <Button fx:id="navHomeButton" text="主畫面" 
+                            onAction="#handleNavHome" styleClass="nav-button,nav-button-active"/>
+                    <Button fx:id="navCompareButton" text="區間比較" 
+                            onAction="#handleNavCompare" styleClass="nav-button"/>
+                </HBox>
+                
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="statusLabel" text="就緒" styleClass="status-label"/>
+            </HBox>
+
+            <!-- 工具列 -->
+            <ToolBar styleClass="tool-bar" fx:id="toolBar">
+                <Button fx:id="fetchButton" text="🔄 抓取最新資料" onAction="#handleFetchData"
+                        styleClass="primary-button"/>
+                <Separator orientation="VERTICAL"/>
+                <Label text="選擇日期："/>
+                <DatePicker fx:id="datePicker" onAction="#handleDateSelected" prefWidth="150"/>
+                <Button fx:id="viewButton" text="📋 檢視" onAction="#handleViewData"/>
+                <Separator orientation="VERTICAL"/>
+                <Button fx:id="refreshButton" text="🔃 重新整理" onAction="#handleRefresh"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="🗑 清理舊資料" onAction="#handleCleanup" styleClass="secondary-button"/>
+            </ToolBar>
+        </VBox>
+    </top>
+
+    <!-- 中央：資料表格 -->
+    <center>
+        <VBox spacing="12" fx:id="contentContainer">
+            <padding>
+                <Insets top="16" bottom="16" left="20" right="20"/>
+            </padding>
+
+            <!-- 摘要區 -->
+            <HBox spacing="24" alignment="CENTER_LEFT" styleClass="summary-bar" fx:id="summaryBar"
+                  HBox.hgrow="ALWAYS">
+                <padding>
+                    <Insets top="14" bottom="14" left="20" right="20"/>
+                </padding>
+                <VBox alignment="CENTER" spacing="4">
+                    <Label text="資料日期" styleClass="summary-label"/>
+                    <Label fx:id="dataDateLabel" text="-" styleClass="summary-value"/>
+                </VBox>
+                <VBox alignment="CENTER" spacing="4">
+                    <Label text="成分股數量" styleClass="summary-label"/>
+                    <Label fx:id="stockCountLabel" text="-" styleClass="summary-value"/>
+                </VBox>
+                <VBox alignment="CENTER" spacing="4">
+                    <Label text="總權重" styleClass="summary-label"/>
+                    <Label fx:id="totalWeightLabel" text="-" styleClass="summary-value"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <VBox alignment="CENTER_RIGHT" spacing="4">
+                    <Label text="最後更新" styleClass="summary-label"/>
+                    <Label fx:id="lastUpdateLabel" text="-" styleClass="summary-value-small"/>
+                </VBox>
+            </HBox>
+
+            <!-- 資料表格 -->
+            <TableView fx:id="holdingsTable" VBox.vgrow="ALWAYS" styleClass="holdings-table">
+                <columns>
+                    <TableColumn fx:id="stockCodeColumn" text="股票代號" prefWidth="100" minWidth="80"/>
+                    <TableColumn fx:id="stockNameColumn" text="股票名稱" prefWidth="200" minWidth="120"/>
+                    <TableColumn fx:id="sharesColumn" text="股數" prefWidth="150" minWidth="100"/>
+                    <TableColumn fx:id="weightColumn" text="權重(%)" prefWidth="100" minWidth="80"/>
+                </columns>
+                <placeholder>
+                    <VBox alignment="CENTER" spacing="12" styleClass="empty-state">
+                        <Label text="📊" styleClass="empty-state-icon"/>
+                        <Label text="尚無資料" styleClass="empty-state-title"/>
+                        <Label text="請點擊「抓取最新資料」取得持倉資料" styleClass="empty-state-message"/>
+                    </VBox>
+                </placeholder>
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+            </TableView>
+
+            <!-- 搜尋列 -->
+            <HBox spacing="12" alignment="CENTER_LEFT" fx:id="searchBar">
+                <Label text="🔍 搜尋："/>
+                <TextField fx:id="searchField" promptText="輸入股票代號或名稱..."
+                           prefWidth="280" onKeyReleased="#handleSearch"/>
+                <Button text="清除" onAction="#handleClearSearch"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="recordCountLabel" text="共 0 筆資料" styleClass="hint-label"/>
+            </HBox>
+        </VBox>
+    </center>
+
+    <!-- 底部：狀態列 -->
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="status-bar" fx:id="statusBar">
+            <padding>
+                <Insets top="6" bottom="6" left="20" right="20"/>
+            </padding>
+            <ProgressIndicator fx:id="progressIndicator" visible="false" prefWidth="18" prefHeight="18"/>
+            <Label fx:id="progressLabel" text=""/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="F5 重新整理" styleClass="shortcut-hint"/>
+            <Label text="|" styleClass="nav-separator"/>
+            <Label fx:id="versionLabel" text="v1.0.0"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

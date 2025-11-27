@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- ETF Holdings Tracker 啟動畫面 -->
+  
+  <!-- 背景漸層 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E3A8A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="600" height="400" fill="url(#bgGradient)" />
+  
+  <!-- 裝飾性背景線條 -->
+  <g opacity="0.1" stroke="white" stroke-width="1" fill="none">
+    <path d="M 0 300 Q 150 200, 300 250 T 600 200" />
+    <path d="M 0 350 Q 200 250, 400 300 T 600 250" />
+    <path d="M 0 250 Q 100 150, 200 200 T 600 150" />
+  </g>
+  
+  <!-- 主圖示區域 -->
+  <g transform="translate(200, 60)">
+    <!-- 圖示背景 -->
+    <circle cx="100" cy="100" r="80" fill="#2563EB" />
+    <circle cx="100" cy="100" r="65" fill="#1E40AF" />
+    
+    <!-- 趨勢線圖 -->
+    <path d="M 40 120 L 70 90 L 100 105 L 130 60 L 160 75" 
+          stroke="#60A5FA" 
+          stroke-width="5" 
+          fill="none" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+    
+    <!-- 資料點 -->
+    <circle cx="40" cy="120" r="4" fill="#60A5FA" />
+    <circle cx="70" cy="90" r="4" fill="#60A5FA" />
+    <circle cx="100" cy="105" r="4" fill="#60A5FA" />
+    <circle cx="130" cy="60" r="4" fill="#10B981" />
+    <circle cx="160" cy="75" r="4" fill="#10B981" />
+    
+    <!-- 上升箭頭 -->
+    <polygon points="150,40 165,58 158,58 158,75 142,75 142,58 135,58" 
+             fill="#10B981" />
+  </g>
+  
+  <!-- 標題文字 -->
+  <text x="300" y="260" 
+        font-family="Arial, sans-serif" 
+        font-size="36" 
+        font-weight="bold" 
+        fill="white" 
+        text-anchor="middle">ETF 持倉追蹤系統</text>
+  
+  <!-- 副標題 -->
+  <text x="300" y="295" 
+        font-family="Arial, sans-serif" 
+        font-size="18" 
+        fill="#93C5FD" 
+        text-anchor="middle">ETF 00981A 每日持倉資料分析</text>
+  
+  <!-- 版本資訊 -->
+  <text x="300" y="335" 
+        font-family="Arial, sans-serif" 
+        font-size="14" 
+        fill="#60A5FA" 
+        text-anchor="middle">Version 1.0.0</text>
+  
+  <!-- 載入進度條背景 -->
+  <rect x="150" y="360" width="300" height="6" rx="3" fill="#1E3A8A" />
+  
+  <!-- 載入進度條 (動畫效果由 JavaFX 控制) -->
+  <rect x="150" y="360" width="180" height="6" rx="3" fill="#60A5FA" />
+  
+  <!-- 載入文字 -->
+  <text x="300" y="385" 
+        font-family="Arial, sans-serif" 
+        font-size="12" 
+        fill="#93C5FD" 
+        text-anchor="middle">正在載入...</text>
+</svg>
