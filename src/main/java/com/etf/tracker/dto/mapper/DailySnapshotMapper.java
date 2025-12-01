@@ -2,7 +2,6 @@ package com.etf.tracker.dto.mapper;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.etf.tracker.dto.DailySnapshotDto;
 import com.etf.tracker.model.DailySnapshot;
@@ -69,7 +68,7 @@ public final class DailySnapshotMapper {
         }
         return entities.stream()
                 .map(DailySnapshotMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -84,6 +83,6 @@ public final class DailySnapshotMapper {
         }
         return dtos.stream()
                 .map(DailySnapshotMapper::toEntity)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

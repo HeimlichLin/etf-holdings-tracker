@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.etf.tracker.model.DailySnapshot;
 import com.etf.tracker.model.Holding;
@@ -26,6 +27,7 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@ActiveProfiles("test")
 public class WebUIVerificationTest {
 
     // @LocalServerPort

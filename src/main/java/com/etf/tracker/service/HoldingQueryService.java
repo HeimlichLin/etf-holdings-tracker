@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.etf.tracker.model.DailySnapshot;
 import com.etf.tracker.model.Holding;
+import com.etf.tracker.service.HoldingQueryService.HoldingStatistics;
 
 /**
  * 持倉查詢服務
@@ -86,7 +86,7 @@ public class HoldingQueryService {
         return getLatestSnapshot()
                 .map(snapshot -> snapshot.getHoldings().stream()
                         .filter(h -> h.getStockCode().contains(stockCode))
-                        .collect(Collectors.toList()))
+                        .toList())
                 .orElse(Collections.emptyList());
     }
 
@@ -105,7 +105,7 @@ public class HoldingQueryService {
         return getLatestSnapshot()
                 .map(snapshot -> snapshot.getHoldings().stream()
                         .filter(h -> h.getStockName().toLowerCase().contains(stockName.toLowerCase()))
-                        .collect(Collectors.toList()))
+                        .toList())
                 .orElse(Collections.emptyList());
     }
 
@@ -127,7 +127,7 @@ public class HoldingQueryService {
                 .map(snapshot -> snapshot.getHoldings().stream()
                         .filter(h -> h.getStockCode().toLowerCase().contains(lowerKeyword) ||
                                 h.getStockName().toLowerCase().contains(lowerKeyword))
-                        .collect(Collectors.toList()))
+                        .toList())
                 .orElse(Collections.emptyList());
     }
 

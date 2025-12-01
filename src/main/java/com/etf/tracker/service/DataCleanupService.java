@@ -2,7 +2,6 @@ package com.etf.tracker.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,7 +112,7 @@ public class DataCleanupService {
 
         List<LocalDate> toBeDeleted = allDates.stream()
                 .filter(date -> date.isBefore(cutoffDate))
-                .collect(Collectors.toList());
+                .toList();
 
         logger.debug("預覽清理: 將刪除 {} 筆資料（截止日期: {}）", toBeDeleted.size(), cutoffDate);
         return toBeDeleted;

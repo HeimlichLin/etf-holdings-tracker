@@ -5,17 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ETF 00981A 持倉追蹤系統</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/apple-style.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1><i class="fas fa-chart-line"></i> ETF 00981A 持倉追蹤系統</h1>
+            <h1><i class="fas fa-chart-line" style="color: var(--accent-primary);"></i> ETF 00981A 持倉追蹤系統</h1>
         </header>
         
         <!-- Status Card -->
         <div class="bento-card area-status">
-            <div class="card-title"><i class="fas fa-server"></i> 系統狀態</div>
+            <div class="card-title">
+                <span><i class="fas fa-server"></i> 系統狀態</span>
+            </div>
             <div class="status-indicator" id="healthButton" onclick="toggleHealthDetails()" style="cursor: pointer;">
                 <div class="status-dot" id="healthStatusDot"></div>
                 <span class="status-text" id="healthStatusText">載入中</span>
@@ -26,7 +28,9 @@
         
         <!-- Actions Card -->
         <div class="bento-card area-actions">
-            <div class="card-title"><i class="fas fa-terminal"></i> 快速操作</div>
+            <div class="card-title">
+                <span><i class="fas fa-terminal"></i> 快速操作</span>
+            </div>
             <div class="action-group">
                 <button class="btn btn-primary" onclick="fetchData()"><i class="fas fa-sync-alt"></i> 抓取最新</button>
                 <button class="btn btn-success" onclick="getLatest()"><i class="fas fa-clipboard-list"></i> 最新持倉</button>
@@ -37,12 +41,12 @@
         
         <!-- Date & Compare Card -->
         <div class="bento-card area-date">
-            <div class="card-title" onclick="toggleSection('dateSection')" style="cursor: pointer; display: flex; justify-content: space-between; width: 100%;">
+            <div class="card-title" onclick="toggleSection('dateSection')" style="cursor: pointer;">
                 <span><i class="fas fa-calendar-alt"></i> 日期查詢</span>
                 <i class="fas fa-chevron-down" id="dateSectionIcon" style="transition: transform 0.3s;"></i>
             </div>
             <div id="dateSection" style="display: none; margin-top: 15px;">
-                <div class="action-group">
+                <div class="action-group" style="flex-direction: column;">
                     <select id="dateSelect" style="width: 100%; margin-bottom: 10px;"></select>
                     <button class="btn btn-outline" onclick="getByDate()" style="width: 100%; justify-content: center;"><i class="fas fa-search"></i> 查詢</button>
                 </div>
@@ -51,7 +55,7 @@
         
         <!-- Compare Range Card -->
         <div class="bento-card area-compare">
-            <div class="card-title" onclick="toggleSection('compareSection')" style="cursor: pointer; display: flex; justify-content: space-between; width: 100%;">
+            <div class="card-title" onclick="toggleSection('compareSection')" style="cursor: pointer;">
                 <span><i class="fas fa-exchange-alt"></i> 區間比較</span>
                 <i class="fas fa-chevron-down" id="compareSectionIcon" style="transition: transform 0.3s;"></i>
             </div>
@@ -73,12 +77,15 @@
         
         <!-- Result Card -->
         <div class="bento-card area-result">
-            <div class="card-title"><i class="fas fa-file-code"></i> 執行結果</div>
+            <div class="card-title">
+                <span><i class="fas fa-file-code"></i> 執行結果</span>
+                <button class="btn btn-outline" onclick="closeResult()" style="padding: 4px 12px; font-size: 0.8rem;"><i class="fas fa-times"></i> 關閉</button>
+            </div>
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 <p style="text-align: center; color: var(--text-secondary);">處理中...</p>
             </div>
-            <div id="result">請選擇上方功能開始操作...</div>
+            <div id="result"></div>
         </div>
     </div>
 
@@ -99,7 +106,31 @@
         }
         
         function showLoading(show) {
-            document.getElementById('loading').classList.toggle('active', show);
+            const loading = document.getElementById('loading');
+            const resultArea = document.querySelector('.area-result');
+            
+            if (show) {
+                resultArea.style.display = 'flex';
+                resultArea.classList.add('active');
+                loading.classList.add('active');
+                document.getElementById('result').style.display = 'none';
+                resultArea.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            } else {
+                loading.classList.remove('active');
+                document.getElementById('result').style.display = 'block';
+            }
+        }
+
+        function showResult() {
+            const resultArea = document.querySelector('.area-result');
+            resultArea.style.display = 'flex';
+            resultArea.classList.add('active');
+        }
+
+        function closeResult() {
+            const resultArea = document.querySelector('.area-result');
+            resultArea.style.display = 'none';
+            resultArea.classList.remove('active');
         }
         
         function formatJson(obj) {
@@ -108,6 +139,7 @@
         
         function renderResult(data) {
             document.getElementById('result').textContent = formatJson(data);
+            showResult();
         }
         
         function toggleHealthDetails() {
@@ -127,40 +159,47 @@
         }
         
         async function checkHealth() {
-            const data = await api('/system/health');
-            const dot = document.getElementById('healthStatusDot');
-            const text = document.getElementById('healthStatusText');
-            const details = document.getElementById('healthDetails');
-            
-            if (data.success && data.data) {
-                const health = data.data;
-                const statusClass = health.status === 'UP' ? 'up' : 
-                                   health.status === 'DEGRADED' ? 'degraded' : 'down';
+            // Don't show loading for background health check
+            try {
+                const response = await fetch(`${API_BASE}/system/health`);
+                const data = await response.json();
                 
-                // Update dot and text
-                dot.className = `status-dot ${statusClass}`;
-                text.textContent = health.status;
+                const dot = document.getElementById('healthStatusDot');
+                const text = document.getElementById('healthStatusText');
+                const details = document.getElementById('healthDetails');
                 
-                // Build details HTML
-                let detailsHtml = `
-                    <table>
-                        <tr><th>元件</th><th>狀態</th><th>訊息</th></tr>
-                        ${Object.entries(health.components || {}).map(([key, comp]) => `
-                            <tr>
-                                <td>${comp.name || key}</td>
-                                <td><span class="status-dot ${comp.status === 'UP' ? 'up' : 'down'}" style="display:inline-block; width:8px; height:8px; margin-right:5px;"></span>${comp.status}</td>
-                                <td>${comp.message || '-'}</td>
-                            </tr>
-                        `).join('')}
-                        <tr><td>總記錄數</td><td colspan="2">${health.totalRecords}</td></tr>
-                        <tr><td>檢查時間</td><td colspan="2">${new Date(health.checkedAt).toLocaleString('zh-TW')}</td></tr>
-                    </table>
-                `;
-                details.innerHTML = detailsHtml;
-            } else {
-                dot.className = 'status-dot down';
-                text.textContent = '無法連線';
-                details.innerHTML = '<p style="color: var(--accent-danger);">無法連接到系統健康檢查服務</p>';
+                if (data.success && data.data) {
+                    const health = data.data;
+                    const statusClass = health.status === 'UP' ? 'up' : 
+                                    health.status === 'DEGRADED' ? 'degraded' : 'down';
+                    
+                    // Update dot and text
+                    dot.className = `status-dot ${statusClass}`;
+                    text.textContent = health.status;
+                    
+                    // Build details HTML
+                    let detailsHtml = `
+                        <table>
+                            <tr><th>元件</th><th>狀態</th><th>訊息</th></tr>
+                            ${Object.entries(health.components || {}).map(([key, comp]) => `
+                                <tr>
+                                    <td>${comp.name || key}</td>
+                                    <td><span class="status-dot ${comp.status === 'UP' ? 'up' : 'down'}" style="display:inline-block; width:8px; height:8px; margin-right:5px;"></span>${comp.status}</td>
+                                    <td>${comp.message || '-'}</td>
+                                </tr>
+                            `).join('')}
+                            <tr><td>總記錄數</td><td colspan="2">${health.totalRecords}</td></tr>
+                            <tr><td>檢查時間</td><td colspan="2">${new Date(health.checkedAt).toLocaleString('zh-TW')}</td></tr>
+                        </table>
+                    `;
+                    details.innerHTML = detailsHtml;
+                } else {
+                    dot.className = 'status-dot down';
+                    text.textContent = '無法連線';
+                    details.innerHTML = '<p style="color: var(--accent-danger);">無法連接到系統健康檢查服務</p>';
+                }
+            } catch (e) {
+                console.error("Health check failed", e);
             }
         }
         
@@ -171,14 +210,14 @@
                 let html = `
                     <div class="alert alert-success">
                         <h3><i class="fas fa-check-circle"></i> 資料抓取成功！</h3>
-                        <div style="font-size: 0.9rem;">
+                        <div style="font-size: 0.9rem; margin-top: 8px;">
                             <p><strong>日期：</strong> ${snapshot.date}</p>
                             <p><strong>成分股數量：</strong> ${snapshot.totalCount}</p>
                             <p><strong>總權重：</strong> ${snapshot.totalWeight?.toFixed(2) || '0'}%</p>
                         </div>
                     </div>
                     <div>
-                        <h4 style="margin-top: 0;">所有成分股資料</h4>
+                        <h4 style="margin: 16px 0 8px 0;">所有成分股資料</h4>
                         <table>
                             <tr><th>代碼</th><th>名稱</th><th>股數</th><th>權重</th></tr>
                             ${(snapshot.holdings || []).map(h => `
@@ -203,6 +242,7 @@
                 `;
                 document.getElementById('result').innerHTML = errorHtml;
             }
+            showResult();
         }
         
         async function getLatest() {
@@ -210,7 +250,7 @@
             if (data.success && data.data) {
                 const snapshot = data.data;
                 let html = `<h3>📅 ${snapshot.date} 持倉資料</h3>`;
-                html += `<p>成分股數量: ${snapshot.totalCount}</p>`;
+                html += `<p style="color: var(--text-secondary); margin-bottom: 16px;">成分股數量: ${snapshot.totalCount}</p>`;
                 html += '<table><tr><th>代碼</th><th>名稱</th><th>股數</th><th>權重</th></tr>';
                 (snapshot.holdings || []).forEach(h => {
                     html += `<tr><td>${h.stockCode}</td><td>${h.stockName}</td><td class="number">${h.shares?.toLocaleString()}</td><td class="number">${h.weight}%</td></tr>`;
@@ -220,6 +260,7 @@
             } else {
                 renderResult(data.message ? data : { message: '尚無資料，請先抓取' });
             }
+            showResult();
         }
         
         async function loadDates() {
@@ -227,32 +268,38 @@
             const startSelect = document.getElementById('startDateSelect');
             const endSelect = document.getElementById('endDateSelect');
             
-            const data = await api('/holdings/dates');
-            
-            if (data.success && data.data && data.data.availableDates) {
-                const dates = data.data.availableDates;
-                const options = dates.map(date => `<option value="${date}">${date}</option>`).join('');
+            // Don't show loading for this background task
+            try {
+                const response = await fetch(`${API_BASE}/holdings/dates`);
+                const data = await response.json();
                 
-                select.innerHTML = options;
-                startSelect.innerHTML = options;
-                endSelect.innerHTML = options;
-                
-                if (dates.length >= 2) {
-                    startSelect.selectedIndex = 1; // 昨天
-                    endSelect.selectedIndex = 0;   // 今天
+                if (data.success && data.data && data.data.availableDates) {
+                    const dates = data.data.availableDates;
+                    const options = dates.map(date => `<option value="${date}">${date}</option>`).join('');
+                    
+                    select.innerHTML = options;
+                    startSelect.innerHTML = options;
+                    endSelect.innerHTML = options;
+                    
+                    if (dates.length >= 2) {
+                        startSelect.selectedIndex = 1; // 昨天
+                        endSelect.selectedIndex = 0;   // 今天
+                    }
+                    
+                    if (dates.length === 0) {
+                        const noData = '<option value="">無可用日期</option>';
+                        select.innerHTML = noData;
+                        startSelect.innerHTML = noData;
+                        endSelect.innerHTML = noData;
+                    }
+                } else {
+                    const error = '<option value="">載入失敗</option>';
+                    select.innerHTML = error;
+                    startSelect.innerHTML = error;
+                    endSelect.innerHTML = error;
                 }
-                
-                if (dates.length === 0) {
-                    const noData = '<option value="">無可用日期</option>';
-                    select.innerHTML = noData;
-                    startSelect.innerHTML = noData;
-                    endSelect.innerHTML = noData;
-                }
-            } else {
-                const error = '<option value="">載入失敗</option>';
-                select.innerHTML = error;
-                startSelect.innerHTML = error;
-                endSelect.innerHTML = error;
+            } catch (e) {
+                console.error("Load dates failed", e);
             }
         }
 
@@ -272,34 +319,34 @@
                 let html = `<h3>📊 區間比較: ${result.startDate} -> ${result.endDate}</h3>`;
                 
                 // 摘要
-                html += `<div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
-                    <span class="status-dot up"></span> 新進: ${result.newAdditions.length}
-                    <span class="status-dot down"></span> 剔除: ${result.removals.length}
-                    <span class="status-dot degraded"></span> 增持: ${result.increased.length}
-                    <span class="status-dot up"></span> 減持: ${result.decreased.length}
+                html += `<div style="display: flex; gap: 16px; margin: 16px 0; flex-wrap: wrap;">
+                    <div style="display:flex; align-items:center; gap:6px;"><span class="status-dot up"></span> 新進: ${result.newAdditions.length}</div>
+                    <div style="display:flex; align-items:center; gap:6px;"><span class="status-dot down"></span> 剔除: ${result.removals.length}</div>
+                    <div style="display:flex; align-items:center; gap:6px;"><span class="status-dot degraded"></span> 增持: ${result.increased.length}</div>
+                    <div style="display:flex; align-items:center; gap:6px;"><span class="status-dot up" style="background-color:var(--accent-success);"></span> 減持: ${result.decreased.length}</div>
                 </div>`;
                 
                 // 新進
                 if (result.newAdditions.length > 0) {
-                    html += `<h4 style="color: var(--accent-danger); margin-top: 16px;">🔥 新進成分股 (${result.newAdditions.length})</h4>`;
+                    html += `<h4 style="color: var(--accent-danger); margin-top: 24px;">🔥 新進成分股 (${result.newAdditions.length})</h4>`;
                     html += renderChangeTable(result.newAdditions, 'new');
                 }
                 
                 // 剔除
                 if (result.removals.length > 0) {
-                    html += `<h4 style="color: var(--accent-success); margin-top: 16px;">🗑️ 剔除成分股 (${result.removals.length})</h4>`;
+                    html += `<h4 style="color: var(--accent-success); margin-top: 24px;">🗑️ 剔除成分股 (${result.removals.length})</h4>`;
                     html += renderChangeTable(result.removals, 'removed');
                 }
                 
                 // 增持
                 if (result.increased.length > 0) {
-                    html += `<h4 style="color: var(--accent-danger); margin-top: 16px;">📈 增持 (${result.increased.length})</h4>`;
+                    html += `<h4 style="color: var(--accent-danger); margin-top: 24px;">📈 增持 (${result.increased.length})</h4>`;
                     html += renderChangeTable(result.increased, 'increased');
                 }
                 
                 // 減持
                 if (result.decreased.length > 0) {
-                    html += `<h4 style="color: var(--accent-success); margin-top: 16px;">📉 減持 (${result.decreased.length})</h4>`;
+                    html += `<h4 style="color: var(--accent-success); margin-top: 24px;">📉 減持 (${result.decreased.length})</h4>`;
                     html += renderChangeTable(result.decreased, 'decreased');
                 }
                 
@@ -307,6 +354,7 @@
             } else {
                 renderResult(data.message ? data : { message: '比較失敗' });
             }
+            showResult();
         }
         
         function renderChangeTable(list, type) {
@@ -339,7 +387,7 @@
             if (data.success && data.data) {
                 const snapshot = data.data;
                 let html = `<h3>📅 ${snapshot.date} 持倉資料</h3>`;
-                html += `<p>成分股數量: ${snapshot.totalCount}</p>`;
+                html += `<p style="color: var(--text-secondary); margin-bottom: 16px;">成分股數量: ${snapshot.totalCount}</p>`;
                 html += '<table><tr><th>代碼</th><th>名稱</th><th>股數</th><th>權重</th></tr>';
                 (snapshot.holdings || []).forEach(h => {
                     html += `<tr><td>${h.stockCode}</td><td>${h.stockName}</td><td class="number">${h.shares?.toLocaleString()}</td><td class="number">${h.weight}%</td></tr>`;
@@ -349,6 +397,7 @@
             } else {
                 renderResult(data.message ? data : { message: '查無資料' });
             }
+            showResult();
         }
         
         async function previewCleanup() {
@@ -403,6 +452,7 @@
                 `;
                 document.getElementById('result').innerHTML = errorHtml;
             }
+            showResult();
         }
         
         async function confirmCleanup() {
@@ -446,6 +496,7 @@
                 `;
                 document.getElementById('result').innerHTML = errorHtml;
             }
+            showResult();
         }
         
         checkHealth();

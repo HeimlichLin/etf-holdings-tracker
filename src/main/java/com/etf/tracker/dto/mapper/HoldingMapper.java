@@ -2,7 +2,6 @@ package com.etf.tracker.dto.mapper;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.etf.tracker.dto.HoldingDto;
 import com.etf.tracker.model.Holding;
@@ -69,7 +68,7 @@ public final class HoldingMapper {
         }
         return entities.stream()
                 .map(HoldingMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -84,6 +83,6 @@ public final class HoldingMapper {
         }
         return dtos.stream()
                 .map(HoldingMapper::toEntity)
-                .collect(Collectors.toList());
+                .toList();
     }
 }
