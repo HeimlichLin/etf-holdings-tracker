@@ -1,20 +1,22 @@
 # ETF Holdings Tracker
 
-[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![JavaFX](https://img.shields.io/badge/JavaFX-21-blue.svg)](https://openjfx.io/)
+[![Maven](https://img.shields.io/badge/Maven-3.9+-C71A36.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-追蹤 ETF 00981A 每日持倉變化的 Windows 桌面應用程式。
+追蹤 ETF 00981A 每日持倉變化的 **Windows 桌面應用程式**，同時支援 REST API 網頁版。
 
 ## 🎯 功能特色
 
-- **📥 自動抓取資料** - 從網站自動抓取最新 ETF 成分股資料
-- **📊 單日查詢** - 查看特定日期的持倉資料
-- **📈 區間比較** - 比較兩個日期間的持倉變化（紅增綠減）
-- **🔄 變化分類** - 自動分類新進/剔除/增持/減持股票
-- **🗂️ Excel 儲存** - 資料本地儲存為 Excel 格式
-- **🧹 資料清理** - 自動清理超過 90 天的舊資料
+- **📥 自動/手動抓取資料** - 每日 00:00 自動排程，或手動從 ezmoney.com.tw 抓取最新成分股資料
+- **📊 單日查詢** - 查看特定日期的持倉資料（股票代號、名稱、股數、權重）
+- **📈 區間比較分析** - 比較兩個日期間的持倉變化（紅增綠減）
+- **🔄 變化自動分類** - 智慧分類新進增持/剔除減持/增減持股票
+- **🗂️ Excel 本地儲存** - 資料儲存為 Excel 格式，可攜式資料管理
+- **🧹 資料清理** - 支援手動清理超過 90 天的舊資料
+- **📦 免安裝執行** - 自帶 JRE 的 Windows 原生執行檔，無需預先安裝 Java
 
 ## 📋 系統需求
 
@@ -119,38 +121,104 @@ mvn package -Pdist-jre -DskipTests
 
 ```
 etf-holdings-tracker/
+├── pom.xml                          # Maven 設定檔
 ├── src/
 │   ├── main/
 │   │   ├── java/com/etf/tracker/
-│   │   │   ├── config/          # 配置類別
-│   │   │   ├── controller/      # REST 控制器
-│   │   │   ├── dto/             # 資料傳輸物件
-│   │   │   ├── exception/       # 例外處理
-│   │   │   ├── gui/             # JavaFX GUI
-│   │   │   ├── model/           # 領域模型
-│   │   │   ├── scraper/         # 網頁擷取
-│   │   │   └── service/         # 業務邏輯
+│   │   │   ├── EtfHoldingsTrackerApplication.java  # Spring Boot 主程式
+│   │   │   ├── config/           # 應用程式配置類別
+│   │   │   ├── controller/       # REST 端點 (/api/holdings/**)
+│   │   │   ├── dto/              # 資料傳輸物件
+│   │   │   │   └── mapper/       # DTO 轉換器 (手動映射)
+│   │   │   ├── exception/        # 自訂例外 (使用工廠方法)
+│   │   │   ├── gui/              # JavaFX 控制器與元件
+│   │   │   ├── model/            # 領域模型 (DailySnapshot, Holding, HoldingChange)
+│   │   │   ├── scraper/          # 網頁擷取策略 (Playwright + Jsoup)
+│   │   │   └── service/          # 業務邏輯層
 │   │   └── resources/
-│   │       ├── fxml/            # JavaFX FXML 佈局
-│   │       ├── css/             # 樣式表
-│   │       └── images/          # 圖示資源
-│   └── test/                    # 單元測試與整合測試
-├── specs/                       # 規格文件
-├── data/                        # 資料儲存目錄 (執行時產生)
-└── logs/                        # 日誌目錄
+│   │       ├── application.yml   # 應用程式配置
+│   │       ├── logback-spring.xml # JSON 結構化日誌配置
+│   │       ├── fxml/             # JavaFX FXML 佈局
+│   │       ├── css/              # 樣式表
+│   │       └── images/           # 圖示資源
+│   └── test/                     # 單元測試與整合測試
+├── specs/                        # 規格文件 (spec.md, plan.md, tasks.md...)
+├── data/                         # Excel 資料儲存目錄 (執行時產生)
+└── logs/                         # 日誌目錄
 ```
+
+---
+
+## 🏗️ 系統架構
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ GUI (JavaFX)          │  REST API (Spring MVC)              │
+│ MainApp/Controller    │  HoldingController                  │
+├───────────────────────┴─────────────────────────────────────┤
+│                    Service Layer                            │
+│  DataFetchService │ HoldingQueryService │ ExcelStorageService │
+├─────────────────────────────────────────────────────────────┤
+│                    Scraper Layer                            │
+│  PlaywrightWebClient → EzMoneyScraperStrategy (Jsoup 解析)  │
+├─────────────────────────────────────────────────────────────┤
+│                    Storage (Excel)                          │
+│  ./data/holdings.xlsx - 透過 Apache POI 讀寫                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 核心資料流
+
+1. **資料抓取**: `DataFetchService` → `PlaywrightWebClient.fetchHtml()` → `EzMoneyScraperStrategy.parseHoldings()`
+2. **資料模型**: `DailySnapshot` (日期快照) 包含多個 `Holding` (個股持倉)
+3. **持倉比較**: `HoldingCompareService.compareRange()` 計算新進/剔除/增持/減持
+
+---
 
 ## 🛠️ 技術架構
 
-| 層級 | 技術 |
-|------|------|
-| 核心框架 | Spring Boot 3.2 |
-| GUI 框架 | JavaFX 21 |
-| HTTP 客戶端 | OkHttp 4.x |
-| HTML 解析 | Jsoup 1.17 |
-| Excel 處理 | Apache POI 5.x |
-| 日誌記錄 | Logback + JSON 結構化日誌 |
-| 測試框架 | JUnit 5 + Mockito + TestFX |
+| 類別 | 技術 | 版本 |
+|------|------|------|
+| 語言 | Java | 21 (LTS) |
+| 核心框架 | Spring Boot | 3.2.0 |
+| GUI 框架 | JavaFX | 21.0.1 |
+| HTTP 客戶端 | OkHttp | 4.12.0 |
+| 瀏覽器自動化 | Playwright | 1.41.0 |
+| HTML 解析 | Jsoup | 1.17.2 |
+| Excel 處理 | Apache POI | 5.2.5 |
+| 日誌記錄 | Logback + Logstash Encoder | 7.4 (JSON 結構化) |
+| 測試框架 | JUnit 5 + Mockito + TestFX | 4.0.18 |
+| 建置工具 | Maven | 3.9+ |
+
+---
+
+## 🔌 API 端點
+
+| 方法 | 端點 | 說明 |
+|------|------|------|
+| `POST` | `/api/holdings/fetch` | 抓取最新持倉資料 |
+| `GET` | `/api/holdings/query/{date}` | 單日查詢 (日期格式: YYYY-MM-DD) |
+| `GET` | `/api/holdings/compare?startDate=&endDate=` | 區間比較分析 |
+| `DELETE` | `/api/holdings/cleanup` | 清理舊資料 |
+
+---
+| Excel 處理 | Apache POI | 5.2.5 |
+| 日誌記錄 | Logback + Logstash Encoder | 7.4 (JSON 結構化) |
+| 測試框架 | JUnit 5 + Mockito + TestFX | 4.0.18 |
+| 建置工具 | Maven | 3.9+ |
+
+---
+
+## 🔌 API 端點
+
+| 方法 | 端點 | 說明 |
+|------|------|------|
+| `POST` | `/api/holdings/fetch` | 抓取最新持倉資料 |
+| `GET` | `/api/holdings/query/{date}` | 單日查詢 (日期格式: YYYY-MM-DD) |
+| `GET` | `/api/holdings/compare?startDate=&endDate=` | 區間比較分析 |
+| `DELETE` | `/api/holdings/cleanup` | 清理舊資料 |
+
+---
 
 ## 📖 使用說明
 
@@ -213,17 +281,62 @@ start target/site/jacoco/index.html
 應用程式配置位於 `src/main/resources/application.yml`：
 
 ```yaml
-etf:
-  scraper:
-    url: https://www.ezmoney.com.tw/...
-    timeout: 10s
-    retry-count: 3
-  storage:
-    path: ./data
-    filename: holdings.xlsx
+app:
   data:
-    retention-days: 90
+    storage-path: ./data         # Excel 儲存位置
+    file-name: holdings.xlsx     # Excel 檔案名稱
+    retention-days: 90           # 資料保留天數 (統計查詢範圍)
+  scraper:
+    target-url: https://www.ezmoney.com.tw/ETF/Fund/Info?FundCode=49YTW
+    timeout-seconds: 10          # 請求逾時時間
+    max-retries: 3               # 最大重試次數
+    retry-delays: [2, 4, 8]      # 指數退避 (秒)
+  http-client:
+    connect-timeout-seconds: 10
+    read-timeout-seconds: 30
 ```
+
+---
+
+## 📏 開發規範
+
+### 程式碼品質標準
+
+| 規則 | 要求 |
+|------|------|
+| 方法長度 | ≤ 50 行 |
+| 類別長度 | ≤ 500 行 |
+| 循環複雜度 | ≤ 10 |
+| 測試覆蓋率 | ≥ 80% |
+| 公開 API | 必須有 Javadoc |
+
+### 命名規範
+
+- **整合測試**: `*IT.java` (如 `HoldingControllerCompareIT.java`)
+- **單元測試**: `*Test.java`，使用 `@Nested` 分組測試案例
+- **DTO 轉換**: 透過 `dto/mapper/*Mapper.java` 靜態方法
+
+### 例外處理模式
+
+使用工廠方法建立例外，保留完整上下文：
+
+```java
+// ✅ 正確
+throw DataFetchException.timeout(url);
+throw DataFetchException.httpError(url, 500);
+throw DataFetchException.parseError(content, cause);
+
+// ❌ 避免
+throw new DataFetchException("連線失敗");
+```
+
+### 測試配置
+
+- 測試使用 `@ActiveProfiles("test")` 啟用 `application-test.yml`
+- 測試資料寫入 `./target/test-data/`
+- MockMvc 測試 REST API，Mockito 測試 Service 層
+
+---
 
 ## 📝 日誌
 
@@ -236,13 +349,46 @@ etf:
 
 歡迎提交 Issue 和 Pull Request！
 
+### 開發流程
+
+1. Fork 此專案
+2. 建立功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交變更 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 開啟 Pull Request
+
+### 開發協作
+
+- 使用 `.github/prompts/` 中的 slash command 範本進行開發協作
+- 遵循 `.github/copilot-instructions.md` 中的專案慣例
+- 確保所有測試通過並維持 80% 以上覆蓋率
+
+---
+
+## 📚 文件資源
+
+詳細規格文件位於 `specs/001-etf-holdings-tracker/`:
+
+| 檔案 | 說明 |
+|------|------|
+| `spec.md` | 功能規格與 User Stories |
+| `plan.md` | 實作計畫與技術決策 |
+| `data-model.md` | 資料模型定義 (Holding, DailySnapshot, HoldingChange) |
+| `tasks.md` | 任務清單與進度追蹤 |
+| `quickstart.md` | 快速入門指南 |
+| `research.md` | 技術研究與選型決策 |
+
+---
+
 ## 📄 授權
 
 本專案採用 MIT 授權條款。詳見 [LICENSE](LICENSE) 檔案。
 
+---
+
 ## 👥 作者
 
-- ETF Tracker Team
+- **HeimlichLin** - [@HeimlichLin](https://github.com/HeimlichLin)
 
 ---
 
