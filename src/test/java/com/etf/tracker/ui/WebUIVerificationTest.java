@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.etf.tracker.model.DailySnapshot;
@@ -26,13 +27,12 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 public class WebUIVerificationTest {
 
-    // @LocalServerPort
-    // private int port;
-    private int port = 8080;
+    @LocalServerPort
+    private int port;
 
     @Autowired
     private ExcelStorageService excelStorageService;
@@ -88,11 +88,19 @@ public class WebUIVerificationTest {
 
             page.navigate("http://localhost:" + port);
 
-            // Check for "Range Compare" section
-            Locator compareSection = page.locator(".compare-section");
+            // Check for "Range Compare" card (area-compare class)
+            Locator compareCard = page.locator(".area-compare");
             // Wait for it to be attached/visible
-            compareSection.waitFor();
-            assertTrue(compareSection.isVisible(), "Compare section should be visible");
+            compareCard.waitFor();
+            assertTrue(compareCard.isVisible(), "Compare card should be visible");
+
+            // Click on the card title to expand the compare section
+            Locator compareTitle = compareCard.locator(".card-title");
+            compareTitle.click();
+
+            // Wait for the section to expand
+            Locator compareSection = page.locator("#compareSection");
+            page.waitForFunction("document.getElementById('compareSection').style.display !== 'none'");
 
             // Check for inputs
             Locator startDate = page.locator("#startDateSelect");

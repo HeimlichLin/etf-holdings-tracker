@@ -12,6 +12,9 @@ import com.etf.tracker.model.DailySnapshot;
  * <p>
  * 負責執行定時任務，如每日自動抓取資料
  * </p>
+ *
+ * @author ETF Tracker Team
+ * @version 1.0.0
  */
 @Service
 public class ScheduledTaskService {

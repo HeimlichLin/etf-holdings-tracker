@@ -105,7 +105,7 @@ public class EzMoneyScraperStrategy {
     private List<Holding> extractHoldingsFromJson(String html) {
         List<Holding> holdings = new ArrayList<>();
         // 尋找 var assetDB = [...];
-        Pattern pattern = Pattern.compile("var\\s+assetDB\\s*=\s*(\\[[\\s\\S]*?\\]);");
+        Pattern pattern = Pattern.compile("var\\s+assetDB\\s*=\\s*(\\[[\\s\\S]*?\\]);");
         Matcher matcher = pattern.matcher(html);
 
         if (matcher.find()) {
