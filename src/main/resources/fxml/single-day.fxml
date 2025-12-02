@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.etf.tracker.gui.view.SingleDayViewController"
+            prefWidth="960" prefHeight="720"
+            fx:id="rootPane">
+
+    <!-- 頂部：標題與日期選擇 -->
+    <top>
+        <VBox fx:id="headerContainer">
+            <!-- 標題列 -->
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="header-bar" fx:id="headerBar">
+                <padding>
+                    <Insets top="12" bottom="12" left="20" right="20"/>
+                </padding>
+                <Button text="← 返回" onAction="#handleBack" styleClass="back-button"/>
+                <Label text="單日持倉查詢" styleClass="page-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="statusLabel" text="就緒" styleClass="status-label"/>
+            </HBox>
+
+            <!-- 查詢工具列 -->
+            <HBox spacing="16" alignment="CENTER_LEFT" styleClass="query-bar" fx:id="queryBar">
+                <padding>
+                    <Insets top="12" bottom="12" left="20" right="20"/>
+                </padding>
+                <Label text="選擇日期：" styleClass="label-bold"/>
+                <DatePicker fx:id="datePicker" onAction="#handleDateSelected" prefWidth="160"/>
+                <Button fx:id="queryButton" text="🔍 查詢" onAction="#handleQuery" styleClass="primary-button"/>
+                <Separator orientation="VERTICAL"/>
+                <Label text="搜尋："/>
+                <TextField fx:id="searchField" promptText="輸入股票代號或名稱..."
+                           prefWidth="220" onKeyReleased="#handleSearch"/>
+                <Button text="清除" onAction="#handleClearSearch"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- 中央：資料顯示區 -->
+    <center>
+        <VBox spacing="12" fx:id="contentContainer">
+            <padding>
+                <Insets top="16" bottom="16" left="20" right="20"/>
+            </padding>
+
+            <!-- 摘要資訊 -->
+            <HBox spacing="32" alignment="CENTER_LEFT" styleClass="summary-card" fx:id="summaryCard"
+                  HBox.hgrow="ALWAYS">
+                <padding>
+                    <Insets top="16" bottom="16" left="24" right="24"/>
+                </padding>
+                <VBox alignment="CENTER" spacing="6">
+                    <Label text="資料日期" styleClass="summary-label"/>
+                    <Label fx:id="dataDateLabel" text="-" styleClass="summary-value"/>
+                </VBox>
+                <Separator orientation="VERTICAL"/>
+                <VBox alignment="CENTER" spacing="6">
+                    <Label text="成分股數量" styleClass="summary-label"/>
+                    <Label fx:id="stockCountLabel" text="-" styleClass="summary-value"/>
+                </VBox>
+                <Separator orientation="VERTICAL"/>
+                <VBox alignment="CENTER" spacing="6">
+                    <Label text="總權重" styleClass="summary-label"/>
+                    <Label fx:id="totalWeightLabel" text="-" styleClass="summary-value"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <VBox alignment="CENTER_RIGHT" spacing="6">
+                    <Label text="可用日期範圍" styleClass="summary-label"/>
+                    <Label fx:id="dateRangeLabel" text="-" styleClass="summary-value-small"/>
+                </VBox>
+            </HBox>
+
+            <!-- 持倉表格 -->
+            <TableView fx:id="holdingsTable" VBox.vgrow="ALWAYS" styleClass="holdings-table">
+                <columns>
+                    <TableColumn fx:id="indexColumn" text="#" prefWidth="50" minWidth="40"/>
+                    <TableColumn fx:id="stockCodeColumn" text="股票代號" prefWidth="100" minWidth="80"/>
+                    <TableColumn fx:id="stockNameColumn" text="股票名稱" prefWidth="200" minWidth="120"/>
+                    <TableColumn fx:id="sharesColumn" text="持股數" prefWidth="150" minWidth="100"/>
+                    <TableColumn fx:id="weightColumn" text="權重(%)" prefWidth="100" minWidth="80"/>
+                </columns>
+                <placeholder>
+                    <VBox alignment="CENTER" spacing="12" styleClass="empty-state">
+                        <Label text="📅" styleClass="empty-state-icon"/>
+                        <Label text="請選擇日期" styleClass="empty-state-title"/>
+                        <Label text="選擇日期並點擊「查詢」按鈕檢視持倉資料" styleClass="empty-state-message"/>
+                    </VBox>
+                </placeholder>
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+            </TableView>
+
+            <!-- 底部資訊列 -->
+            <HBox spacing="12" alignment="CENTER_LEFT" fx:id="footerBar">
+                <Label fx:id="recordCountLabel" text="共 0 筆資料"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="排序："/>
+                <ComboBox fx:id="sortComboBox" promptText="選擇排序方式" onAction="#handleSortChange" prefWidth="150"/>
+            </HBox>
+        </VBox>
+    </center>
+
+    <!-- 底部：狀態列 -->
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="status-bar" fx:id="statusBar">
+            <padding>
+                <Insets top="6" bottom="6" left="20" right="20"/>
+            </padding>
+            <ProgressIndicator fx:id="progressIndicator" visible="false" prefWidth="18" prefHeight="18"/>
+            <Label fx:id="progressLabel" text=""/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="ESC 返回" styleClass="shortcut-hint"/>
+            <Label text="|" styleClass="nav-separator"/>
+            <Label text="ETF 00981A 單日持倉查詢"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>
