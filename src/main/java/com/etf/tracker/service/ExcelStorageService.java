@@ -24,6 +24,7 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ import com.etf.tracker.model.Holding;
  * @version 1.0.0
  */
 @Service
-public class ExcelStorageService {
+public class ExcelStorageService implements StorageService {
 
     private static final Logger logger = LoggerFactory.getLogger(ExcelStorageService.class);
 
@@ -66,6 +67,7 @@ public class ExcelStorageService {
      * @param snapshot 每日快照
      * @throws StorageException 如果儲存失敗
      */
+    @Override
     public void saveSnapshot(DailySnapshot snapshot) {
         validateSnapshot(snapshot);
 
@@ -102,6 +104,7 @@ public class ExcelStorageService {
      * @param date 日期
      * @return 快照，如果不存在則為空
      */
+    @Override
     public Optional<DailySnapshot> getSnapshot(LocalDate date) {
         Path filePath = getFilePath();
 
@@ -122,8 +125,9 @@ public class ExcelStorageService {
             boolean dateFound = false;
 
             for (Row row : sheet) {
-                if (row.getRowNum() == 0)
+                if (row.getRowNum() == 0) {
                     continue; // 跳過標題
+                }
 
                 Cell dateCell = row.getCell(0);
                 if (dateCell != null && dateStr.equals(getCellStringValue(dateCell))) {
@@ -161,6 +165,7 @@ public class ExcelStorageService {
      *
      * @return 最新快照，如果沒有資料則為空
      */
+    @Override
     public Optional<DailySnapshot> getLatestSnapshot() {
         List<LocalDate> dates = getAvailableDates();
         if (dates.isEmpty()) {
@@ -174,6 +179,7 @@ public class ExcelStorageService {
      *
      * @return 日期清單
      */
+    @Override
     public List<LocalDate> getAvailableDates() {
         Path filePath = getFilePath();
 
@@ -192,8 +198,9 @@ public class ExcelStorageService {
             Set<LocalDate> dateSet = new TreeSet<>(Comparator.reverseOrder());
 
             for (Row row : sheet) {
-                if (row.getRowNum() == 0)
+                if (row.getRowNum() == 0) {
                     continue;
+                }
 
                 Cell dateCell = row.getCell(0);
                 if (dateCell != null) {
@@ -221,6 +228,7 @@ public class ExcelStorageService {
      * @param cutoffDate 截止日期
      * @return 符合條件的記錄數
      */
+    @Override
     public int countRecordsBefore(LocalDate cutoffDate) {
         Path filePath = getFilePath();
 
@@ -240,16 +248,17 @@ public class ExcelStorageService {
             int count = 0;
 
             for (Row row : sheet) {
-                if (row.getRowNum() == 0)
+                if (row.getRowNum() == 0) {
                     continue;
+                }
 
                 Cell dateCell = row.getCell(0);
                 if (dateCell != null) {
                     String dateStr = getCellStringValue(dateCell);
                     try {
                         LocalDate date = LocalDate.parse(dateStr, DATE_FORMATTER);
-                        // 刪除所有早於或等於 cutoffDate 的資料
-                        if (date.compareTo(cutoffDate) <= 0) {
+                        // 刪除所有嚴格早於 cutoffDate 的資料（不含截止日當天）
+                        if (date.isBefore(cutoffDate)) {
                             count++;
                         }
                     } catch (Exception e) {
@@ -271,6 +280,7 @@ public class ExcelStorageService {
      *
      * @return 總記錄數
      */
+    @Override
     public int getTotalRecordCount() {
         Path filePath = getFilePath();
 
@@ -289,8 +299,9 @@ public class ExcelStorageService {
 
             int count = 0;
             for (Row row : sheet) {
-                if (row.getRowNum() == 0)
+                if (row.getRowNum() == 0) {
                     continue;
+                }
                 count++;
             }
 
@@ -308,6 +319,7 @@ public class ExcelStorageService {
      * @param cutoffDate 截止日期
      * @return 刪除的記錄數
      */
+    @Override
     public int deleteDataBefore(LocalDate cutoffDate) {
         Path filePath = getFilePath();
 
@@ -324,19 +336,19 @@ public class ExcelStorageService {
             }
 
             List<Integer> rowsToDelete = new ArrayList<>();
-            String cutoffStr = cutoffDate.format(DATE_FORMATTER);
 
             for (Row row : sheet) {
-                if (row.getRowNum() == 0)
+                if (row.getRowNum() == 0) {
                     continue;
+                }
 
                 Cell dateCell = row.getCell(0);
                 if (dateCell != null) {
                     String dateStr = getCellStringValue(dateCell);
                     try {
                         LocalDate date = LocalDate.parse(dateStr, DATE_FORMATTER);
-                        // 刪除所有早於或等於 cutoffDate 的資料
-                        if (date.compareTo(cutoffDate) <= 0) {
+                        // 刪除所有嚴格早於 cutoffDate 的資料（不含截止日當天）
+                        if (date.isBefore(cutoffDate)) {
                             rowsToDelete.add(row.getRowNum());
                         }
                     } catch (Exception e) {
@@ -389,11 +401,14 @@ public class ExcelStorageService {
 
     /**
      * 載入或建立工作簿
+     * <p>
+     * 使用 WorkbookFactory 自動偵測檔案格式，支援 .xls (HSSF) 和 .xlsx (XSSF)
+     * </p>
      */
     private Workbook loadOrCreateWorkbook(Path filePath) throws IOException {
         if (Files.exists(filePath)) {
             try (InputStream is = Files.newInputStream(filePath)) {
-                return new XSSFWorkbook(is);
+                return WorkbookFactory.create(is);
             }
         }
         return new XSSFWorkbook();
@@ -446,8 +461,9 @@ public class ExcelStorageService {
         List<Integer> rowsToDelete = new ArrayList<>();
 
         for (Row row : sheet) {
-            if (row.getRowNum() == 0)
-                continue;
+            if (row.getRowNum() == 0) {
+                continue; // 跳過標題
+            }
 
             Cell dateCell = row.getCell(0);
             if (dateCell != null && dateStr.equals(getCellStringValue(dateCell))) {
@@ -546,12 +562,13 @@ public class ExcelStorageService {
      * 取得儲存格字串值
      */
     private String getCellStringValue(Cell cell) {
-        if (cell == null)
+        if (cell == null) {
             return "";
+        }
         return switch (cell.getCellType()) {
             case STRING -> cell.getStringCellValue();
             case NUMERIC -> String.valueOf((long) cell.getNumericCellValue());
-            default -> "";
+            case BLANK, BOOLEAN, ERROR, FORMULA, _NONE -> "";
         };
     }
 
@@ -559,12 +576,13 @@ public class ExcelStorageService {
      * 取得儲存格 Long 值
      */
     private Long getCellLongValue(Cell cell) {
-        if (cell == null)
+        if (cell == null) {
             return 0L;
+        }
         return switch (cell.getCellType()) {
             case NUMERIC -> (long) cell.getNumericCellValue();
             case STRING -> Long.parseLong(cell.getStringCellValue().replaceAll("[,\\s]", ""));
-            default -> 0L;
+            case BLANK, BOOLEAN, ERROR, FORMULA, _NONE -> 0L;
         };
     }
 
@@ -572,12 +590,13 @@ public class ExcelStorageService {
      * 取得儲存格 BigDecimal 值
      */
     private BigDecimal getCellBigDecimalValue(Cell cell) {
-        if (cell == null)
+        if (cell == null) {
             return BigDecimal.ZERO;
+        }
         return switch (cell.getCellType()) {
             case NUMERIC -> BigDecimal.valueOf(cell.getNumericCellValue());
             case STRING -> new BigDecimal(cell.getStringCellValue().replaceAll("[%\\s]", ""));
-            default -> BigDecimal.ZERO;
+            case BLANK, BOOLEAN, ERROR, FORMULA, _NONE -> BigDecimal.ZERO;
         };
     }
 

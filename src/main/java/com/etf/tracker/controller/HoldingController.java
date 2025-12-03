@@ -28,9 +28,9 @@ import com.etf.tracker.model.DailySnapshot;
 import com.etf.tracker.model.Holding;
 import com.etf.tracker.service.DataCleanupService;
 import com.etf.tracker.service.DataFetchService;
-import com.etf.tracker.service.ExcelStorageService;
 import com.etf.tracker.service.HoldingCompareService;
 import com.etf.tracker.service.HoldingQueryService;
+import com.etf.tracker.service.StorageService;
 
 /**
  * 持倉資料控制器
@@ -48,18 +48,18 @@ public class HoldingController {
     private static final Logger logger = LoggerFactory.getLogger(HoldingController.class);
 
     private final DataFetchService dataFetchService;
-    private final ExcelStorageService excelStorageService;
+    private final StorageService storageService;
     private final HoldingQueryService holdingQueryService;
     private final HoldingCompareService holdingCompareService;
     private final DataCleanupService dataCleanupService;
 
     public HoldingController(DataFetchService dataFetchService,
-            ExcelStorageService excelStorageService,
+            StorageService storageService,
             HoldingQueryService holdingQueryService,
             HoldingCompareService holdingCompareService,
             DataCleanupService dataCleanupService) {
         this.dataFetchService = dataFetchService;
-        this.excelStorageService = excelStorageService;
+        this.storageService = storageService;
         this.holdingQueryService = holdingQueryService;
         this.holdingCompareService = holdingCompareService;
         this.dataCleanupService = dataCleanupService;
@@ -79,7 +79,7 @@ public class HoldingController {
             DailySnapshot snapshot = dataFetchService.fetchLatestHoldings();
 
             // 2. 儲存資料
-            excelStorageService.saveSnapshot(snapshot);
+            storageService.saveSnapshot(snapshot);
 
             // 3. 轉換並回傳
             DailySnapshotDto dto = DailySnapshotMapper.toDto(snapshot);
@@ -106,7 +106,7 @@ public class HoldingController {
     public ResponseEntity<ApiResponse<DailySnapshotDto>> getLatestHoldings() {
         logger.info("查詢最新持倉資料");
 
-        Optional<DailySnapshot> snapshot = excelStorageService.getLatestSnapshot();
+        Optional<DailySnapshot> snapshot = storageService.getLatestSnapshot();
 
         if (snapshot.isPresent()) {
             DailySnapshotDto dto = DailySnapshotMapper.toDto(snapshot.get());
@@ -127,7 +127,7 @@ public class HoldingController {
             @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
         logger.info("查詢指定日期持倉資料: {}", date);
 
-        Optional<DailySnapshot> snapshot = excelStorageService.getSnapshot(date);
+        Optional<DailySnapshot> snapshot = storageService.getSnapshot(date);
 
         if (snapshot.isPresent()) {
             DailySnapshotDto dto = DailySnapshotMapper.toDto(snapshot.get());
@@ -146,7 +146,7 @@ public class HoldingController {
     public ResponseEntity<ApiResponse<AvailableDatesDto>> getAvailableDates() {
         logger.info("查詢可用日期");
 
-        List<LocalDate> dates = excelStorageService.getAvailableDates();
+        List<LocalDate> dates = storageService.getAvailableDates();
 
         LocalDate latestDate = dates.isEmpty() ? null : dates.get(0);
         LocalDate earliestDate = dates.isEmpty() ? null : dates.get(dates.size() - 1);
@@ -180,8 +180,8 @@ public class HoldingController {
             LocalDate cutoffDate = LocalDate.now().minusDays(daysToKeep);
 
             // 計算 Excel 中符合條件的實際行數（成分股筆數）
-            int totalRecords = excelStorageService.getTotalRecordCount();
-            int expiredRecords = excelStorageService.countRecordsBefore(cutoffDate);
+            int totalRecords = storageService.getTotalRecordCount();
+            int expiredRecords = storageService.countRecordsBefore(cutoffDate);
             int remainingRecords = totalRecords - expiredRecords;
 
             CleanupResultDto previewResult = new CleanupResultDto(
@@ -243,7 +243,6 @@ public class HoldingController {
 
         List<Holding> holdings = switch (sortBy.toLowerCase()) {
             case "code" -> holdingQueryService.getHoldingsSortedByCode(ascending);
-            case "weight" -> holdingQueryService.getHoldingsSortedByWeight(ascending);
             default -> holdingQueryService.getHoldingsSortedByWeight(ascending);
         };
 

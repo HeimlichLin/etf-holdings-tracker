@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.etf.tracker.config.AppConfig;
 import com.etf.tracker.dto.CleanupResultDto;
-import com.etf.tracker.service.DataCleanupService.CleanupStatistics;
 
 /**
  * 資料清理服務
@@ -25,11 +24,11 @@ public class DataCleanupService {
 
     private static final Logger logger = LoggerFactory.getLogger(DataCleanupService.class);
 
-    private final ExcelStorageService excelStorageService;
+    private final StorageService storageService;
     private final AppConfig appConfig;
 
-    public DataCleanupService(ExcelStorageService excelStorageService, AppConfig appConfig) {
-        this.excelStorageService = excelStorageService;
+    public DataCleanupService(StorageService storageService, AppConfig appConfig) {
+        this.storageService = storageService;
         this.appConfig = appConfig;
     }
 
@@ -63,10 +62,10 @@ public class DataCleanupService {
 
         try {
             // 執行刪除
-            int deletedCount = excelStorageService.deleteDataBefore(cutoffDate);
+            int deletedCount = storageService.deleteDataBefore(cutoffDate);
 
             // 取得剩餘資料統計
-            List<LocalDate> remainingDates = excelStorageService.getAvailableDates();
+            List<LocalDate> remainingDates = storageService.getAvailableDates();
             int remainingCount = remainingDates.size();
 
             logger.info("清理完成: 刪除 {} 筆，剩餘 {} 筆", deletedCount, remainingCount);
@@ -108,7 +107,7 @@ public class DataCleanupService {
      */
     public List<LocalDate> previewCleanup(int daysToKeep) {
         LocalDate cutoffDate = LocalDate.now().minusDays(daysToKeep);
-        List<LocalDate> allDates = excelStorageService.getAvailableDates();
+        List<LocalDate> allDates = storageService.getAvailableDates();
 
         List<LocalDate> toBeDeleted = allDates.stream()
                 .filter(date -> date.isBefore(cutoffDate))
@@ -124,7 +123,7 @@ public class DataCleanupService {
      * @return 清理統計
      */
     public CleanupStatistics getCleanupStatistics() {
-        List<LocalDate> allDates = excelStorageService.getAvailableDates();
+        List<LocalDate> allDates = storageService.getAvailableDates();
 
         if (allDates.isEmpty()) {
             return new CleanupStatistics(0, 0, 0, null, null);

@@ -22,22 +22,22 @@ public class ScheduledTaskService {
     private static final Logger logger = LoggerFactory.getLogger(ScheduledTaskService.class);
 
     private final DataFetchService dataFetchService;
-    private final ExcelStorageService excelStorageService;
+    private final StorageService storageService;
 
-    public ScheduledTaskService(DataFetchService dataFetchService, ExcelStorageService excelStorageService) {
+    public ScheduledTaskService(DataFetchService dataFetchService, StorageService storageService) {
         this.dataFetchService = dataFetchService;
-        this.excelStorageService = excelStorageService;
+        this.storageService = storageService;
     }
 
     /**
-     * 每日凌晨 12 點自動抓取持倉資料
+     * 每日下午 4 點自動抓取持倉資料
      */
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0 16 * * ?")
     public void fetchHoldingsDaily() {
         logger.info("開始執行每日自動抓取任務");
         try {
             DailySnapshot snapshot = dataFetchService.fetchLatestHoldings();
-            excelStorageService.saveSnapshot(snapshot);
+            storageService.saveSnapshot(snapshot);
             logger.info("每日自動抓取任務完成: 日期={}", snapshot.getDate());
         } catch (Exception e) {
             logger.error("每日自動抓取任務失敗", e);

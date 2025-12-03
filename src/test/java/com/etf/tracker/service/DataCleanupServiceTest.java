@@ -40,7 +40,7 @@ import com.etf.tracker.dto.CleanupResultDto;
 class DataCleanupServiceTest {
 
     @Mock
-    private ExcelStorageService excelStorageService;
+    private StorageService storageService;
 
     @Mock
     private AppConfig appConfig;
@@ -54,7 +54,7 @@ class DataCleanupServiceTest {
     void setUp() {
         when(appConfig.getData()).thenReturn(dataConfig);
         when(dataConfig.getRetentionDays()).thenReturn(90);
-        dataCleanupService = new DataCleanupService(excelStorageService, appConfig);
+        dataCleanupService = new DataCleanupService(storageService, appConfig);
     }
 
     @Nested
@@ -66,8 +66,8 @@ class DataCleanupServiceTest {
         void shouldDeleteExpiredDataSuccessfully() {
             // Arrange
             LocalDate cutoffDate = LocalDate.now().minusDays(90);
-            when(excelStorageService.deleteDataBefore(any(LocalDate.class))).thenReturn(5);
-            when(excelStorageService.getAvailableDates()).thenReturn(
+            when(storageService.deleteDataBefore(any(LocalDate.class))).thenReturn(5);
+            when(storageService.getAvailableDates()).thenReturn(
                     Arrays.asList(
                             LocalDate.now(),
                             LocalDate.now().minusDays(30),
@@ -89,8 +89,8 @@ class DataCleanupServiceTest {
         @DisplayName("當沒有過期資料時，應回傳零刪除記錄")
         void shouldReturnZeroWhenNoExpiredData() {
             // Arrange
-            when(excelStorageService.deleteDataBefore(any(LocalDate.class))).thenReturn(0);
-            when(excelStorageService.getAvailableDates()).thenReturn(
+            when(storageService.deleteDataBefore(any(LocalDate.class))).thenReturn(0);
+            when(storageService.getAvailableDates()).thenReturn(
                     Arrays.asList(LocalDate.now(), LocalDate.now().minusDays(30)));
 
             // Act
@@ -107,8 +107,8 @@ class DataCleanupServiceTest {
         @DisplayName("當沒有任何資料時，應正確處理")
         void shouldHandleEmptyDataCorrectly() {
             // Arrange
-            when(excelStorageService.deleteDataBefore(any(LocalDate.class))).thenReturn(0);
-            when(excelStorageService.getAvailableDates()).thenReturn(Collections.emptyList());
+            when(storageService.deleteDataBefore(any(LocalDate.class))).thenReturn(0);
+            when(storageService.getAvailableDates()).thenReturn(Collections.emptyList());
 
             // Act
             CleanupResultDto result = dataCleanupService.cleanupOldData();
@@ -130,8 +130,8 @@ class DataCleanupServiceTest {
             // Arrange
             int customDays = 30;
             LocalDate expectedCutoffDate = LocalDate.now().minusDays(customDays);
-            when(excelStorageService.deleteDataBefore(expectedCutoffDate)).thenReturn(10);
-            when(excelStorageService.getAvailableDates()).thenReturn(
+            when(storageService.deleteDataBefore(expectedCutoffDate)).thenReturn(10);
+            when(storageService.getAvailableDates()).thenReturn(
                     Arrays.asList(LocalDate.now(), LocalDate.now().minusDays(15)));
 
             // Act
@@ -142,7 +142,7 @@ class DataCleanupServiceTest {
             assertThat(result.deletedRecords()).isEqualTo(10);
             assertThat(result.remainingDays()).isEqualTo(customDays);
             assertThat(result.cutoffDate()).isEqualTo(expectedCutoffDate);
-            verify(excelStorageService).deleteDataBefore(expectedCutoffDate);
+            verify(storageService).deleteDataBefore(expectedCutoffDate);
         }
 
         @Test
@@ -150,8 +150,8 @@ class DataCleanupServiceTest {
         void shouldCleanAllDataWhenDaysIsZero() {
             // Arrange
             LocalDate today = LocalDate.now();
-            when(excelStorageService.deleteDataBefore(today)).thenReturn(100);
-            when(excelStorageService.getAvailableDates()).thenReturn(Collections.emptyList());
+            when(storageService.deleteDataBefore(today)).thenReturn(100);
+            when(storageService.getAvailableDates()).thenReturn(Collections.emptyList());
 
             // Act
             CleanupResultDto result = dataCleanupService.cleanupOldData(0);
@@ -187,7 +187,7 @@ class DataCleanupServiceTest {
                     LocalDate.now().minusDays(60),
                     LocalDate.now().minusDays(100),
                     LocalDate.now().minusDays(120));
-            when(excelStorageService.getAvailableDates()).thenReturn(allDates);
+            when(storageService.getAvailableDates()).thenReturn(allDates);
 
             // Act
             List<LocalDate> toBeDeleted = dataCleanupService.previewCleanup(90);
@@ -204,7 +204,7 @@ class DataCleanupServiceTest {
             List<LocalDate> recentDates = Arrays.asList(
                     LocalDate.now(),
                     LocalDate.now().minusDays(30));
-            when(excelStorageService.getAvailableDates()).thenReturn(recentDates);
+            when(storageService.getAvailableDates()).thenReturn(recentDates);
 
             // Act
             List<LocalDate> toBeDeleted = dataCleanupService.previewCleanup(90);
@@ -227,7 +227,7 @@ class DataCleanupServiceTest {
                     LocalDate.now().minusDays(30),
                     LocalDate.now().minusDays(60),
                     LocalDate.now().minusDays(100));
-            when(excelStorageService.getAvailableDates()).thenReturn(allDates);
+            when(storageService.getAvailableDates()).thenReturn(allDates);
 
             // Act
             DataCleanupService.CleanupStatistics stats = dataCleanupService.getCleanupStatistics();
@@ -244,7 +244,7 @@ class DataCleanupServiceTest {
         @DisplayName("當沒有資料時，統計應正確處理")
         void shouldHandleEmptyStatistics() {
             // Arrange
-            when(excelStorageService.getAvailableDates()).thenReturn(Collections.emptyList());
+            when(storageService.getAvailableDates()).thenReturn(Collections.emptyList());
 
             // Act
             DataCleanupService.CleanupStatistics stats = dataCleanupService.getCleanupStatistics();
@@ -271,15 +271,15 @@ class DataCleanupServiceTest {
             // Assert
             assertThat(result.success()).isFalse();
             assertThat(result.message()).contains("確認");
-            verify(excelStorageService, never()).deleteDataBefore(any());
+            verify(storageService, never()).deleteDataBefore(any());
         }
 
         @Test
         @DisplayName("當確認時，應執行清理")
         void shouldCleanupWhenConfirmed() {
             // Arrange
-            when(excelStorageService.deleteDataBefore(any(LocalDate.class))).thenReturn(5);
-            when(excelStorageService.getAvailableDates()).thenReturn(Arrays.asList(LocalDate.now()));
+            when(storageService.deleteDataBefore(any(LocalDate.class))).thenReturn(5);
+            when(storageService.getAvailableDates()).thenReturn(Arrays.asList(LocalDate.now()));
 
             // Act
             CleanupResultDto result = dataCleanupService.confirmAndCleanup(90, true);
@@ -287,7 +287,7 @@ class DataCleanupServiceTest {
             // Assert
             assertThat(result.success()).isTrue();
             assertThat(result.deletedRecords()).isEqualTo(5);
-            verify(excelStorageService).deleteDataBefore(any(LocalDate.class));
+            verify(storageService).deleteDataBefore(any(LocalDate.class));
         }
     }
 

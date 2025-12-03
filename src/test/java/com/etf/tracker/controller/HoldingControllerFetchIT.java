@@ -32,7 +32,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.etf.tracker.config.AppConfig;
 import com.etf.tracker.model.DailySnapshot;
 import com.etf.tracker.model.Holding;
-import com.etf.tracker.service.ExcelStorageService;
+import com.etf.tracker.service.StorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import okhttp3.mockwebserver.MockWebServer;
@@ -56,7 +56,7 @@ class HoldingControllerFetchIT {
         private ObjectMapper objectMapper;
 
         @Autowired
-        private ExcelStorageService excelStorageService;
+        private StorageService storageService;
 
         @Autowired
         private AppConfig appConfig;
@@ -155,7 +155,7 @@ class HoldingControllerFetchIT {
                                 .build();
 
                 // 儲存
-                excelStorageService.saveSnapshot(snapshot);
+                storageService.saveSnapshot(snapshot);
 
                 // 驗證可用日期
                 mockMvc.perform(get("/api/holdings/dates"))
@@ -203,7 +203,7 @@ class HoldingControllerFetchIT {
                                 .totalWeight(new BigDecimal("25.50"))
                                 .build();
 
-                excelStorageService.saveSnapshot(oldSnapshot);
+                storageService.saveSnapshot(oldSnapshot);
 
                 // 新增較新的資料（10 天前，確保不會被清理）
                 LocalDate recentDate = LocalDate.now().minusDays(10);
@@ -220,7 +220,7 @@ class HoldingControllerFetchIT {
                                 .totalWeight(new BigDecimal("15.30"))
                                 .build();
 
-                excelStorageService.saveSnapshot(recentSnapshot);
+                storageService.saveSnapshot(recentSnapshot);
 
                 // 執行清理 - 保留 90 天內的資料
                 // oldDate (100 天前) 會被刪除
@@ -260,7 +260,7 @@ class HoldingControllerFetchIT {
                                 .totalWeight(new BigDecimal("25.50"))
                                 .build();
 
-                excelStorageService.saveSnapshot(first);
+                storageService.saveSnapshot(first);
 
                 // 第二次儲存（相同日期，不同資料）
                 DailySnapshot second = DailySnapshot.builder()
@@ -282,7 +282,7 @@ class HoldingControllerFetchIT {
                                 .totalWeight(new BigDecimal("25.50"))
                                 .build();
 
-                excelStorageService.saveSnapshot(second);
+                storageService.saveSnapshot(second);
 
                 // 驗證資料被覆蓋
                 mockMvc.perform(get("/api/holdings/" + testDate))
@@ -310,7 +310,7 @@ class HoldingControllerFetchIT {
                                 .totalWeight(new BigDecimal("25.50"))
                                 .build();
 
-                excelStorageService.saveSnapshot(snapshot);
+                storageService.saveSnapshot(snapshot);
 
                 // 模擬多個並發請求
                 for (int i = 0; i < 5; i++) {
@@ -341,7 +341,7 @@ class HoldingControllerFetchIT {
                                 .totalWeight(new BigDecimal("25.50"))
                                 .build();
 
-                excelStorageService.saveSnapshot(snapshot);
+                storageService.saveSnapshot(snapshot);
 
                 // 驗證成功回應格式
                 mockMvc.perform(get("/api/holdings/latest"))

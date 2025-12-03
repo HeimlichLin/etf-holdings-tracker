@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import com.etf.tracker.model.DailySnapshot;
 import com.etf.tracker.model.Holding;
-import com.etf.tracker.service.HoldingQueryService.HoldingStatistics;
 
 /**
  * 持倉查詢服務
@@ -30,10 +29,10 @@ public class HoldingQueryService {
 
     private static final Logger logger = LoggerFactory.getLogger(HoldingQueryService.class);
 
-    private final ExcelStorageService excelStorageService;
+    private final StorageService storageService;
 
-    public HoldingQueryService(ExcelStorageService excelStorageService) {
-        this.excelStorageService = excelStorageService;
+    public HoldingQueryService(StorageService storageService) {
+        this.storageService = storageService;
     }
 
     /**
@@ -48,7 +47,7 @@ public class HoldingQueryService {
             return Optional.empty();
         }
         logger.debug("查詢日期 {} 的持倉資料", date);
-        return excelStorageService.getSnapshot(date);
+        return storageService.getSnapshot(date);
     }
 
     /**
@@ -58,7 +57,7 @@ public class HoldingQueryService {
      */
     public Optional<DailySnapshot> getLatestSnapshot() {
         logger.debug("查詢最新持倉資料");
-        return excelStorageService.getLatestSnapshot();
+        return storageService.getLatestSnapshot();
     }
 
     /**
@@ -68,7 +67,7 @@ public class HoldingQueryService {
      */
     public List<LocalDate> getAvailableDates() {
         logger.debug("查詢可用日期");
-        return excelStorageService.getAvailableDates();
+        return storageService.getAvailableDates();
     }
 
     /**

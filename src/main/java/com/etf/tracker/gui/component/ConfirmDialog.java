@@ -2,8 +2,6 @@ package com.etf.tracker.gui.component;
 
 import java.util.function.Consumer;
 
-import com.etf.tracker.gui.component.ConfirmDialog.CleanupConfirmResult;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -298,13 +296,13 @@ public class ConfirmDialog {
 
         private final Spinner<Integer> daysSpinner;
         private final Label infoLabel;
-        private final com.etf.tracker.service.ExcelStorageService excelStorageService;
+        private final com.etf.tracker.service.StorageService storageService;
 
-        public CleanupConfirmDialog(int defaultDays, com.etf.tracker.service.ExcelStorageService excelStorageService) {
+        public CleanupConfirmDialog(int defaultDays, com.etf.tracker.service.StorageService storageService) {
             setTitle("清理過期資料");
             setHeaderText("設定資料保留天數");
 
-            this.excelStorageService = excelStorageService;
+            this.storageService = storageService;
 
             // 天數選擇器
             daysSpinner = new Spinner<>();
@@ -372,9 +370,9 @@ public class ConfirmDialog {
             // 例如：保留 1 天 = 只保留今天，刪除昨天之前的所有資料
             java.time.LocalDate cutoffDate = java.time.LocalDate.now().minusDays(selectedDays);
 
-            // 從 Excel 中計算符合條件的記錄數（成分股筆數）
-            int totalRecords = excelStorageService.getTotalRecordCount();
-            int expiredRecords = excelStorageService.countRecordsBefore(cutoffDate);
+            // 從儲存服務中計算符合條件的記錄數（成分股筆數）
+            int totalRecords = storageService.getTotalRecordCount();
+            int expiredRecords = storageService.countRecordsBefore(cutoffDate);
             int remainingRecords = totalRecords - expiredRecords;
 
             infoLabel.setText(String.format(

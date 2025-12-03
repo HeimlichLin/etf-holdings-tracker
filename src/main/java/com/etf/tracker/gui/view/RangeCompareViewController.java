@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 
 import com.etf.tracker.dto.HoldingChangeDto;
 import com.etf.tracker.dto.RangeCompareResultDto;
-import com.etf.tracker.service.ExcelStorageService;
 import com.etf.tracker.service.HoldingCompareService;
+import com.etf.tracker.service.StorageService;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -189,7 +189,7 @@ public class RangeCompareViewController implements Initializable {
 
     // 服務
     private final HoldingCompareService holdingCompareService;
-    private final ExcelStorageService excelStorageService;
+    private final StorageService storageService;
 
     // 資料
     private final ObservableList<HoldingChangeDto> newAdditionsData = FXCollections.observableArrayList();
@@ -209,9 +209,9 @@ public class RangeCompareViewController implements Initializable {
     private int unchangedCount = 0;
 
     public RangeCompareViewController(HoldingCompareService holdingCompareService,
-            ExcelStorageService excelStorageService) {
+            StorageService storageService) {
         this.holdingCompareService = holdingCompareService;
-        this.excelStorageService = excelStorageService;
+        this.storageService = storageService;
     }
 
     @Override
@@ -429,7 +429,7 @@ public class RangeCompareViewController implements Initializable {
         Task<List<LocalDate>> task = new Task<>() {
             @Override
             protected List<LocalDate> call() {
-                return excelStorageService.getAvailableDates();
+                return storageService.getAvailableDates();
             }
         };
 

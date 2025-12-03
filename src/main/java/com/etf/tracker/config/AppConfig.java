@@ -21,6 +21,7 @@ public class AppConfig {
     private DataConfig data = new DataConfig();
     private ScraperConfig scraper = new ScraperConfig();
     private HttpClientConfig httpClient = new HttpClientConfig();
+    private GoogleSheetsConfig googleSheets = new GoogleSheetsConfig();
 
     // Getters and Setters
 
@@ -46,6 +47,14 @@ public class AppConfig {
 
     public void setHttpClient(HttpClientConfig httpClient) {
         this.httpClient = httpClient;
+    }
+
+    public GoogleSheetsConfig getGoogleSheets() {
+        return googleSheets;
+    }
+
+    public void setGoogleSheets(GoogleSheetsConfig googleSheets) {
+        this.googleSheets = googleSheets;
     }
 
     /**
@@ -226,6 +235,66 @@ public class AppConfig {
 
         public void setWriteTimeoutSeconds(int writeTimeoutSeconds) {
             this.writeTimeoutSeconds = writeTimeoutSeconds;
+        }
+    }
+
+    /**
+     * Google Sheets 儲存配置
+     */
+    public static class GoogleSheetsConfig {
+        /** 是否啟用 Google Sheets 儲存 */
+        private boolean enabled = false;
+
+        /** Google Sheets ID */
+        private String spreadsheetId;
+
+        /** 工作表名稱 */
+        private String sheetName = "Holdings";
+
+        /** 服務帳戶金鑰檔案路徑 */
+        private String credentialsPath = "./config/google-credentials.json";
+
+        /** 應用程式名稱 */
+        private String applicationName = "ETF-Holdings-Tracker";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getSpreadsheetId() {
+            return spreadsheetId;
+        }
+
+        public void setSpreadsheetId(String spreadsheetId) {
+            this.spreadsheetId = spreadsheetId;
+        }
+
+        public String getSheetName() {
+            return sheetName;
+        }
+
+        public void setSheetName(String sheetName) {
+            this.sheetName = sheetName;
+        }
+
+        public String getCredentialsPath() {
+            return credentialsPath;
+        }
+
+        public void setCredentialsPath(String credentialsPath) {
+            this.credentialsPath = credentialsPath;
+        }
+
+        public String getApplicationName() {
+            return applicationName;
+        }
+
+        public void setApplicationName(String applicationName) {
+            this.applicationName = applicationName;
         }
     }
 }

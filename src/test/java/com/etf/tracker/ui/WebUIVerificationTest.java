@@ -19,7 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.etf.tracker.model.DailySnapshot;
 import com.etf.tracker.model.Holding;
-import com.etf.tracker.service.ExcelStorageService;
+import com.etf.tracker.service.StorageService;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
@@ -35,7 +35,7 @@ public class WebUIVerificationTest {
     private int port;
 
     @Autowired
-    private ExcelStorageService excelStorageService;
+    private StorageService storageService;
 
     private static Playwright playwright;
     private static Browser browser;
@@ -77,8 +77,8 @@ public class WebUIVerificationTest {
         );
         DailySnapshot snapshot2 = new DailySnapshot(date2, holdings2, holdings2.size(), new BigDecimal("32.5"));
 
-        excelStorageService.saveSnapshot(snapshot1);
-        excelStorageService.saveSnapshot(snapshot2);
+        storageService.saveSnapshot(snapshot1);
+        storageService.saveSnapshot(snapshot2);
     }
 
     @Test

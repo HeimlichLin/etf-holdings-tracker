@@ -47,10 +47,10 @@ public class HoldingCompareService {
     /** 權重變化小數位數 */
     private static final int WEIGHT_SCALE = 4;
 
-    private final ExcelStorageService excelStorageService;
+    private final StorageService storageService;
 
-    public HoldingCompareService(ExcelStorageService excelStorageService) {
-        this.excelStorageService = excelStorageService;
+    public HoldingCompareService(StorageService storageService) {
+        this.storageService = storageService;
     }
 
     /**
@@ -135,7 +135,7 @@ public class HoldingCompareService {
      * 取得快照，若不存在則拋出例外
      */
     private DailySnapshot getSnapshotOrThrow(LocalDate date, String errorMessage) {
-        Optional<DailySnapshot> snapshot = excelStorageService.getSnapshot(date);
+        Optional<DailySnapshot> snapshot = storageService.getSnapshot(date);
         if (snapshot.isEmpty()) {
             throw new ValidationException(errorMessage);
         }
@@ -266,8 +266,9 @@ public class HoldingCompareService {
             case INCREASED -> increased.add(change);
             case DECREASED -> decreased.add(change);
             case UNCHANGED -> unchanged.add(change);
-            default -> {
-                // 不應該發生
+            case NEW_ADDITION, REMOVED -> {
+                // 新進與剔除在其他地方處理
+                logger.warn("非預期的變化類型: {}", change.changeType());
             }
         }
     }

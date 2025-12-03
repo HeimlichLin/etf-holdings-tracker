@@ -24,7 +24,7 @@ import com.etf.tracker.dto.SystemHealthDto.ComponentHealth;
 import com.etf.tracker.dto.SystemHealthDto.HealthStatus;
 import com.etf.tracker.model.DailySnapshot;
 import com.etf.tracker.service.DataCleanupService;
-import com.etf.tracker.service.ExcelStorageService;
+import com.etf.tracker.service.StorageService;
 
 /**
  * 系統控制器
@@ -41,14 +41,14 @@ public class SystemController {
 
     private static final Logger logger = LoggerFactory.getLogger(SystemController.class);
 
-    private final ExcelStorageService excelStorageService;
+    private final StorageService storageService;
     private final DataCleanupService dataCleanupService;
     private final AppConfig appConfig;
 
-    public SystemController(ExcelStorageService excelStorageService,
+    public SystemController(StorageService storageService,
             DataCleanupService dataCleanupService,
             AppConfig appConfig) {
-        this.excelStorageService = excelStorageService;
+        this.storageService = storageService;
         this.dataCleanupService = dataCleanupService;
         this.appConfig = appConfig;
     }
@@ -158,7 +158,7 @@ public class SystemController {
     private ComponentHealth checkDataAccess() {
         try {
             // 嘗試讀取可用日期，驗證資料存取是否正常
-            List<LocalDate> dates = excelStorageService.getAvailableDates();
+            List<LocalDate> dates = storageService.getAvailableDates();
             if (dates.isEmpty()) {
                 return new ComponentHealth("資料存取", HealthStatus.UP, "正常（尚無資料）");
             }
@@ -204,12 +204,50 @@ public class SystemController {
      * 取得最後抓取時間（使用最新資料日期作為近似值）
      */
     private LocalDateTime getLastFetchTime() {
-        Optional<DailySnapshot> latest = excelStorageService.getLatestSnapshot();
+        Optional<DailySnapshot> latest = storageService.getLatestSnapshot();
         if (latest.isPresent()) {
             // 假設資料在當天抓取
             return latest.get().getDate().atStartOfDay();
         }
         return null;
+    }
+
+    /**
+     * 取得儲存服務資訊
+     * <p>
+     * 提供資料來源狀態，用於前端判斷是否允許編輯
+     * </p>
+     *
+     * @return 儲存服務資訊
+     */
+    @GetMapping("/storage-info")
+    public ResponseEntity<ApiResponse<StorageInfo>> getStorageInfo() {
+        boolean readOnly = storageService.isReadOnly();
+        String dataSource = storageService.getDataSourceInfo();
+
+        StorageInfo info = new StorageInfo(
+                dataSource,
+                readOnly,
+                readOnly ? "資料來源為 Google Sheets，僅供讀取" : "資料來源為本地 Excel，可進行編輯",
+                LocalDateTime.now());
+
+        logger.debug("儲存服務資訊: readOnly={}, dataSource={}", readOnly, dataSource);
+        return ResponseEntity.ok(ApiResponse.success(info));
+    }
+
+    /**
+     * 儲存服務資訊
+     *
+     * @param dataSource 資料來源名稱
+     * @param readOnly   是否唯讀
+     * @param message    說明訊息
+     * @param checkedAt  檢查時間
+     */
+    public record StorageInfo(
+            String dataSource,
+            boolean readOnly,
+            String message,
+            LocalDateTime checkedAt) {
     }
 
     /**

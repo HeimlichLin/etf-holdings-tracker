@@ -1,6 +1,8 @@
 ﻿/**
  * ETF Holdings Tracker - Google Apps Script 版本
  * 限制: GAS UrlFetchApp 無法執行 JavaScript，僅支援 SSR 內容
+ * 
+ * 目標 Google Sheet: https://docs.google.com/spreadsheets/d/1dUB1itKu2W7aHsfQonTuifotoCxbvRp_aHPFkS4Yol8/edit
  */
 
 const CONFIG = {
@@ -13,7 +15,7 @@ const CONFIG = {
 };
 
 function runDailyJob() {
-  log('========== 開始執行每日排程 ==========');
+  log('開始執行每日排程');
   
   try {
     var result = fetchHoldingsData();
@@ -28,7 +30,7 @@ function runDailyJob() {
     log('執行失敗: ' + e.toString(), 'ERROR');
   }
   
-  log('========== 排程執行結束 ==========');
+  log('排程執行結束');
 }
 
 /** 從 ezmoney.com.tw 抓取持倉資料 */

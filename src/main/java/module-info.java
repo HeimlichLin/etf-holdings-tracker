@@ -40,6 +40,12 @@ module com.etf.tracker {
     requires org.slf4j;
     requires playwright;
 
+    // JSON 解析 (Google Sheets 公開 API 使用)
+    requires com.google.gson;
+
+    // Jakarta Annotation
+    requires jakarta.annotation;
+
     // 開放套件給 Spring 反射存取
     opens com.etf.tracker to spring.core, spring.beans, spring.context;
     opens com.etf.tracker.config to spring.core, spring.beans, spring.context;

@@ -60,6 +60,19 @@ app:
     # 寫入逾時時間 (秒)
     write-timeout-seconds: 30
 
+  # Google Sheets 儲存配置
+  google-sheets:
+    # 是否啟用 Google Sheets 儲存 (true: 使用 Google Sheets, false: 使用本地 Excel)
+    enabled: true
+    # Google Sheets ID (從 URL 中取得)
+    spreadsheet-id: 1dUB1itKu2W7aHsfQonTuifotoCxbvRp_aHPFkS4Yol8
+    # 工作表名稱
+    sheet-name: Holdings
+    # 服務帳戶金鑰檔案路徑 (JSON 格式)
+    credentials-path: ./config/google-credentials.json
+    # 應用程式名稱
+    application-name: ETF-Holdings-Tracker
+
 # 日誌配置
 logging:
   level:

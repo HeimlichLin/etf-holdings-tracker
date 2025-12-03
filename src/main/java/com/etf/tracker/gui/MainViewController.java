@@ -25,7 +25,7 @@ import com.etf.tracker.gui.view.RangeCompareViewController;
 import com.etf.tracker.model.DailySnapshot;
 import com.etf.tracker.service.DataCleanupService;
 import com.etf.tracker.service.DataFetchService;
-import com.etf.tracker.service.ExcelStorageService;
+import com.etf.tracker.service.StorageService;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -138,7 +138,7 @@ public class MainViewController implements Initializable {
 
     // 服務
     private final DataFetchService dataFetchService;
-    private final ExcelStorageService excelStorageService;
+    private final StorageService storageService;
     private final DataCleanupService dataCleanupService;
     private final ApplicationContext applicationContext;
 
@@ -151,11 +151,11 @@ public class MainViewController implements Initializable {
     private Node homeView;
 
     public MainViewController(DataFetchService dataFetchService,
-            ExcelStorageService excelStorageService,
+            StorageService storageService,
             DataCleanupService dataCleanupService,
             ApplicationContext applicationContext) {
         this.dataFetchService = dataFetchService;
-        this.excelStorageService = excelStorageService;
+        this.storageService = storageService;
         this.dataCleanupService = dataCleanupService;
         this.applicationContext = applicationContext;
     }
@@ -234,7 +234,7 @@ public class MainViewController implements Initializable {
      * 載入可用日期
      */
     private void loadAvailableDates() {
-        List<LocalDate> dates = excelStorageService.getAvailableDates();
+        List<LocalDate> dates = storageService.getAvailableDates();
         if (!dates.isEmpty()) {
             datePicker.setValue(dates.get(0));
         }
@@ -244,7 +244,7 @@ public class MainViewController implements Initializable {
      * 載入最新資料
      */
     private void loadLatestData() {
-        Optional<DailySnapshot> snapshot = excelStorageService.getLatestSnapshot();
+        Optional<DailySnapshot> snapshot = storageService.getLatestSnapshot();
         snapshot.ifPresent(this::displaySnapshot);
     }
 
@@ -260,7 +260,7 @@ public class MainViewController implements Initializable {
             @Override
             protected DailySnapshot call() throws Exception {
                 DailySnapshot snapshot = dataFetchService.fetchLatestHoldings();
-                excelStorageService.saveSnapshot(snapshot);
+                storageService.saveSnapshot(snapshot);
                 return snapshot;
             }
         };
@@ -308,7 +308,7 @@ public class MainViewController implements Initializable {
         Task<Optional<DailySnapshot>> task = new Task<>() {
             @Override
             protected Optional<DailySnapshot> call() {
-                return excelStorageService.getSnapshot(selectedDate);
+                return storageService.getSnapshot(selectedDate);
             }
         };
 
@@ -367,9 +367,9 @@ public class MainViewController implements Initializable {
         int defaultDays = dataCleanupService.getDefaultRetentionDays();
 
         // 使用 ConfirmDialog.CleanupConfirmDialog 顯示確認對話框
-        // 傳入 ExcelStorageService 以便動態計算實際 Excel 中的記錄數
+        // 傳入 StorageService 以便動態計算實際記錄數
         ConfirmDialog.CleanupConfirmDialog dialog = new ConfirmDialog.CleanupConfirmDialog(defaultDays,
-                excelStorageService);
+                storageService);
 
         dialog.showAndWait().ifPresent(result -> {
             if (result.confirmed()) {
@@ -513,13 +513,13 @@ public class MainViewController implements Initializable {
     public void handleNavHome() {
         logger.info("導航到主畫面");
         updateNavigationState("home");
-        
+
         // 恢復工具列
         if (toolBar != null) {
             toolBar.setVisible(true);
             toolBar.setManaged(true);
         }
-        
+
         if (homeView != null) {
             rootPane.setCenter(homeView);
         }
@@ -532,7 +532,7 @@ public class MainViewController implements Initializable {
     public void handleNavCompare() {
         logger.info("導航到區間比較");
         updateNavigationState("compare");
-        
+
         // 隱藏工具列
         if (toolBar != null) {
             toolBar.setVisible(false);
